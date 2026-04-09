@@ -1,0 +1,117 @@
+{
+  "skill_name": "spec-power",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我们的 Express 后端有个 bug，用户登录时如果密码包含特殊字符（比如 #、& 等），会返回 500 错误。看了下日志是 bcrypt.compare 报错了，好像是 body-parser 没正确处理 URL 编码的问题。帮我修一下。",
+      "expected_output": "应推荐 Flow 模式。快速写一段提案确认问题范围，然后用 TDD 方式修复（先写复现 bug 的测试，再修复），最后验证。不应该过度规划。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "推荐了 Flow 模式",
+          "check": "输出中明确提到推荐 Flow 模式或类似表述（快速模式、轻量流程）"
+        },
+        {
+          "name": "使用了 TDD",
+          "check": "先写了测试文件，测试文件包含失败场景，然后才有修复代码"
+        },
+        {
+          "name": "进行了验证",
+          "check": "有测试运行的输出或验证报告，显示测试通过"
+        },
+        {
+          "name": "无占位符",
+          "check": "所有文档和代码中没有 TODO、FIXME、TBD、待定等占位符"
+        },
+        {
+          "name": "修复了根本原因",
+          "check": "代码修改涉及 body-parser 配置或 bcrypt 异常处理"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我们的 React + Node.js 电商项目需要加一个商品评价系统。用户购买商品后可以评分（1-5星）和写文字评价，其他用户可以查看评价列表和平均分。评价需要审核后才能显示。需要前后端都做。",
+      "expected_output": "应推荐 Standard 模式。先写提案（功能范围、影响分析），然后做技术设计（API设计、数据模型、前后端交互），分解任务（后端API、数据库、前端组件、测试），用子agent并行执行，最后代码审查和验证。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "推荐了 Standard 模式",
+          "check": "输出中明确提到推荐 Standard 模式"
+        },
+        {
+          "name": "生成了 proposal.md",
+          "check": "存在 proposal.md 文件，包含动机、变更范围、影响分析"
+        },
+        {
+          "name": "生成了 design.md",
+          "check": "存在 design.md 文件，包含技术方案、架构决策"
+        },
+        {
+          "name": "生成了 tasks.md",
+          "check": "存在 tasks.md 文件，包含任务分解和步骤"
+        },
+        {
+          "name": "tasks 有文件映射",
+          "check": "tasks.md 中每个任务明确列出了 Create/Modify/Test 文件路径"
+        },
+        {
+          "name": "进行了代码审查",
+          "check": "有代码审查报告或审查结果记录"
+        },
+        {
+          "name": "提供了前后端代码",
+          "check": "同时有后端代码（API/控制器）和前端代码（React组件）"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我们的微服务架构中，用户认证目前散落在各个服务里，每个服务自己验证 JWT token。现在需要统一到一个认证网关，所有服务通过网关验证。涉及 5 个服务（user-service, order-service, payment-service, notification-service, api-gateway），需要做到零停机迁移，而且要保证向后兼容至少一个版本。",
+      "expected_output": "应推荐 Strict 模式。先探索现有认证实现，写提案（迁移动机、影响的5个服务），写 Delta 规范（认证行为的 MODIFIED requirements），做详细技术设计（网关架构、迁移步骤、回滚方案），分解任务（按服务分组+可并行标注），执行，两阶段审查（规范符合+代码质量），验证，归档。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "推荐了 Strict 模式",
+          "check": "输出中明确提到推荐 Strict 模式"
+        },
+        {
+          "name": "进行了探索阶段",
+          "check": "有探索阶段的输出或在 proposal 中包含项目上下文分析"
+        },
+        {
+          "name": "生成了 proposal.md",
+          "check": "存在 proposal.md，包含动机、范围、5个服务的影响分析"
+        },
+        {
+          "name": "生成了 Delta 规范",
+          "check": "存在 specs/ 目录下的规范文件，使用 ADDED/MODIFIED/REMOVED 格式"
+        },
+        {
+          "name": "规范使用 RFC 2119 关键词",
+          "check": "规范中使用了 MUST/SHALL/SHOULD/MAY 等关键词"
+        },
+        {
+          "name": "生成了 design.md",
+          "check": "存在 design.md，包含迁移方案、零停机策略、向后兼容计划"
+        },
+        {
+          "name": "生成了 tasks.md",
+          "check": "存在 tasks.md，任务涉及多个服务的修改"
+        },
+        {
+          "name": "进行了规范符合审查",
+          "check": "有规范符合审查报告，检查需求覆盖"
+        },
+        {
+          "name": "进行了代码质量审查",
+          "check": "有代码质量审查报告，评估架构和安全性"
+        },
+        {
+          "name": "提供了归档计划",
+          "check": "有归档计划或说明了如何保存上下文"
+        }
+      ]
+    }
+  ]
+}

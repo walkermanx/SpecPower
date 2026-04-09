@@ -1,0 +1,11 @@
+name: add-user-avatars
+mode: standard              # flow | standard | strict
+created: 2026-04-08
+status: completed           # in-progress | review | done | archived
+artifacts:
+  proposal: done
+  design: done
+  tasks: done
+  implementation: done      # 示例中未包含实际代码
+  review: done
+  verification: done
