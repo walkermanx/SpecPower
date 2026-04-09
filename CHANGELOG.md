@@ -9,6 +9,47 @@
 
 ---
 
+## [1.2.0] - 2026-04-09
+
+### 重构 🔨
+
+- **SKILL.md 结构优化**
+  - 主文件从 574行 精简到 331行（减少42%）
+  - SKILL.md 重新定位为"路由器"，详细内容按需加载
+  - 消除了与 references/ 文件的内容重复
+  - 各 Phase 改为概要 + 引用模式
+
+- **新增统一Phase指导**
+  - 创建 `references/phase-guide.md` 统一管理各Phase详细执行步骤
+  - 整合了原本分散在SKILL.md中的Phase详情
+  - 包含平台适配建议、常见问题处理
+
+### 改进 ⚡
+
+- **渐进式加载优化**
+  - 主文件只包含概要和引用指针
+  - 用户可按需深入了解详细内容
+  - 减少 token 消耗，提升加载效率
+
+- **维护性提升**
+  - 同一内容不再在多处重复
+  - 更新时只需修改一处
+  - 引用系统更清晰
+
+### 文档结构
+
+新的引用层次：
+```
+SKILL.md (路由器，331行)
+  ├─ references/phase-guide.md (各Phase详细指南)
+  ├─ references/artifact-system.md (工件和模板)
+  ├─ references/execution-guide.md (TDD和调试)
+  ├─ references/review-verify.md (审查和验证)
+  └─ references/mindset.md (心态和最佳实践)
+```
+
+---
+
 ## [1.1.2] - 2026-04-08
 
 ### 新增 ✨
