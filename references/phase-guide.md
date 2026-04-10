@@ -1057,20 +1057,11 @@ git worktree remove --force .worktrees/<change-name>-YYYYMMDDHHMMSS
 
 ## 平台适配总结
 
-| 能力 | Claude Code | Cursor | Copilot/其他 |
-|------|------------|--------|-------------|
-| 子agent并行 | Yes | No | No |
-| Git worktree (Strict) | 自动 | 手动必需 | 手动必需 |
-| Git worktree (Standard/Flow) | 自动 | 手动可选 | 手动可选 |
-| Worktree 收尾清理 | ExitWorktree | 手动/脚本 | 手动/脚本 |
-| 工件系统 | Yes | Yes | Yes |
-| TDD流程 | Yes | Yes | Yes |
-| 两阶段审查 | 子agent | 内联 | 内联 |
+详见 SKILL.md 的"平台适配"章节。关键差异：
+- Claude Code 支持子agent并行和自动 Worktree 管理
+- 其他平台使用内联审查、手动 Worktree 操作、顺序执行
 
-无子agent时的降级策略：
-- 审查改为自我审查（用清单代替独立子agent）
-- 并行执行改为顺序执行
-- 所有工件和质量规则不变
+各阶段的具体平台适配说明见上文对应章节。
 
 ---
 
