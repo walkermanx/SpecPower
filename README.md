@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -137,7 +137,7 @@ chmod +x scripts/init-change.sh
 
 **⚠️ 要求**: 必须使用 Git Worktree 隔离
 
-**✨ 新增**: 完整需求澄清流程、自动分解过大任务
+**✨ 新增**: 完整需求澄清流程、自动分解过大任务、多角色方案对比（Phase 4）
 
 ---
 
@@ -254,6 +254,9 @@ SpecPower 强制执行测试驱动开发:
 - **[agents/implementer.md](agents/implementer.md)** — 任务实现者提示模板
 - **[agents/spec-reviewer.md](agents/spec-reviewer.md)** — 规范审查提示模板
 - **[agents/code-reviewer.md](agents/code-reviewer.md)** — 代码审查提示模板
+- **[agents/architect.md](agents/architect.md)** — 架构师视角设计（Strict）
+- **[agents/perf-expert.md](agents/perf-expert.md)** — 性能专家视角设计（Strict）
+- **[agents/senior-dev.md](agents/senior-dev.md)** — 资深开发视角设计（Strict）
 
 ### 工具脚本
 
@@ -276,6 +279,7 @@ SpecPower 强制执行测试驱动开发:
 ### 示例
 
 - **[examples/add-user-avatars/](examples/add-user-avatars/)** — 完整 Standard 模式端到端示例
+- **[examples/add-user-avatars/multi-role-design.md](examples/add-user-avatars/multi-role-design.md)** — Strict 模式多角色方案对比示例
 
 ---
 
@@ -306,6 +310,7 @@ SpecPower 强制执行测试驱动开发:
 | 三档模式 | ✅ | ✅ | ✅ |
 | TDD 流程 | ✅ | ✅ | ✅ |
 | 子 agent 并行 | ✅ | ❌ | ❌ |
+| 多角色设计 (Strict) | ✅(3子agent并行) | ✅(顺序内联) | ✅(顺序内联) |
 | 自动 worktree | ✅ | ❌(需手动) | ❌(需手动) |
 | Worktree 收尾清理 | ✅(ExitWorktree) | ✅(手动/脚本) | ✅(手动/脚本) |
 | 三层审查 | ✅(子agent) | ✅(内联) | ✅(内联) |
