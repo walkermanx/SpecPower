@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -126,7 +126,7 @@ chmod +x scripts/init-change.sh
 
 **适用场景**: 跨模块重构、核心系统、团队协作
 
-**流程**: 探索 → 需求澄清 → 提案 → 规范 → 设计 → 任务 → 执行 → 审查 → 验证 → 归档
+**流程**: 探索 → 需求澄清 → 提案 → 规范 → 设计 → 任务 → 执行 → 审查 → 验证 → 归档 → 收尾
 
 **示例任务**:
 - 重构认证系统
@@ -264,6 +264,13 @@ SpecPower 强制执行测试驱动开发:
 # 示例
 ./scripts/init-change.sh add-payment-gateway standard
 # 生成: docs/spec-power/changes/add-payment-gateway-20260409143025/
+
+# 收尾变更(整合分支、清理 worktree)
+./scripts/finish-change.sh <change-name-with-timestamp> [merge|pr|keep|discard]
+
+# 示例
+./scripts/finish-change.sh add-payment-gateway-20260409143025 merge
+# 合并到主分支并清理 worktree
 ```
 
 ### 示例
@@ -300,6 +307,7 @@ SpecPower 强制执行测试驱动开发:
 | TDD 流程 | ✅ | ✅ | ✅ |
 | 子 agent 并行 | ✅ | ❌ | ❌ |
 | 自动 worktree | ✅ | ❌(需手动) | ❌(需手动) |
+| Worktree 收尾清理 | ✅(ExitWorktree) | ✅(手动/脚本) | ✅(手动/脚本) |
 | 三层审查 | ✅(子agent) | ✅(内联) | ✅(内联) |
 
 **无子 agent 时的降级策略**:

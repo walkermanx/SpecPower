@@ -9,6 +9,101 @@
 
 ---
 
+## [1.4.0] - 2026-04-11
+
+### 新增 ✨
+
+- **Phase 10: 收尾清理**
+  - 完整闭合 Git Worktree 生命周期（创建 → 使用 → 清理）
+  - 补全之前缺失的 worktree 清理、分支整合、状态转换环节
+  - 提供 4 个结构化选项：合并/PR/保留/废弃
+  - 参考 superpowers `finishing-a-development-branch` 的安全原则设计
+
+- **4 个结构化收尾选项**
+  1. **合并到主分支** — merge + test + remove worktree + delete branch
+  2. **推送并创建 PR** — push + gh pr create + remove worktree (可选)
+  3. **保留当前状态** — 不清理，稍后处理
+  4. **废弃变更** — 需确认 → force delete branch + remove worktree
+
+- **安全机制**
+  - 测试通过才提供选项（keep/discard 跳过门控）
+  - 废弃需用户输入 'discard' 确认
+  - 合并后再次验证测试
+  - 不问开放性问题，直接提供结构化选择
+
+- **收尾脚本 `finish-change.sh`**
+  - 支持 4 种操作模式（merge/pr/keep/discard）
+  - 交互式选择 + 命令行参数两种方式
+  - 自动更新 `.specpower.yaml` status（done/review/archived）
+  - 跨平台兼容（macOS/Linux）
+  - 包含测试验证门控
+
+### 改进 ⚡
+
+- **工件 DAG 更新**
+  - 在 archive 节点后新增 finish 节点
+  - Strict 流程：`... → archive → finish`
+  - Standard/Flow: finish 可选（仅使用 worktree 时需要）
+
+- **平台适配扩展**
+  - Claude Code: 使用 `ExitWorktree(action="remove"/"keep")`
+  - 其他平台: 手动 `git worktree remove` 或使用 `finish-change.sh` 脚本
+  - 平台适配表新增"Worktree 收尾清理"能力对比
+
+- **`.specpower.yaml` 状态流完善**
+  - 选项 1 (merge) → status: done
+  - 选项 2 (PR) → status: review
+  - 选项 3 (keep) → status 不变
+  - 选项 4 (discard) → status: archived
+
+- **流程图更新**
+  - Strict 模式: `explore ──► ... ──► archive ──► finish`
+  - Standard 模式: `clarify ──► ... ──► verify ──► (finish)`
+  - Flow 模式: `propose ──► execute ──► verify ──► (finish)`
+
+### 文档更新 📝
+
+- **SKILL.md**
+  - 版本升级至 1.4.0
+  - 新增 Phase 10 概要章节
+  - 更新所有模式流程图（Strict 必需，Standard/Flow 可选标注）
+  - 工件 DAG 图新增 finish 节点
+  - 快速参考新增收尾入口
+  - 平台适配表新增 Worktree 收尾清理行
+
+- **references/phase-guide.md**
+  - 新增完整的 Phase 10 详细指南（5 步流程）
+  - 包含 4 个选项的详细执行步骤、bash 命令、验证流程
+  - 选项速查表（merge/push/worktree/branch/status 对比）
+  - 安全原则和常见错误
+
+- **scripts/finish-change.sh**
+  - 新建收尾脚本（244 行）
+  - 完整实现 4 种操作模式
+  - 包含测试验证、分支检测、worktree 清理、状态更新
+  - 错误处理和友好提示
+
+- **README.md**
+  - Strict 模式流程描述加入"收尾"步骤
+  - 工具脚本部分新增 `finish-change.sh` 使用示例
+  - 平台兼容性表格新增 Worktree 收尾清理行
+
+### 设计理念 🎯
+
+**与 superpowers 的差异化**：
+- 定位：作为 Phase 10 自然衔接在 Phase 9 归档之后，而非独立 skill
+- 触发：Phase 9 完成后自动进入（Strict），或按需进入（Standard/Flow）
+- 适配：spec-power 的分支命名规范 `spec-power/<name>-<timestamp>`
+- 集成：与 `.specpower.yaml` 状态流深度结合
+
+**解决的核心问题**：
+- Worktree 泄漏（未清理的 `.worktrees/` 累积）
+- 分支污染（`spec-power/*` 分支持续增加）
+- 生命周期不闭合（创建了 worktree 却没有清理指引）
+- 跨平台一致性（Claude Code/Cursor/其他平台的清理方式不一致）
+
+---
+
 ## [1.3.0] - 2026-04-10
 
 ### 新增 ✨

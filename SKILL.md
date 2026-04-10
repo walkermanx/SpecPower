@@ -1,12 +1,12 @@
 ---
 name: spec-power
-version: "1.3.0"
+version: "1.4.0"
 description: "SpecPower - 规范驱动的开发工作流。触发关键词:'开发新功能'、'重构模块'、'复杂bug'、'架构设计'、'写计划'、'分步做'、'规范化开发'、'拆解任务'、'团队协作'、'核心系统'、'多模块'、'TDD'。自动推荐Flow(快速)/Standard(日常)/Strict(关键)三档模式。Standard+模式含需求澄清阶段(逐个澄清、方向速览、范围确认),强制测试驱动开发,三层质量审查(自审/规范审查/代码审查),支持子agent并行执行。适用于所有需要结构化规划的开发工作,不适用于简单查询或单行代码修改。"
 ---
 
 # SpecPower: 规范驱动的超能力开发工作流
 
-> **版本**: 1.3.0 | **更新日志**: [CHANGELOG.md](CHANGELOG.md)
+> **版本**: 1.4.0 | **更新日志**: [CHANGELOG.md](CHANGELOG.md)
 
 SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行纪律，形成一套完整的软件开发方法论。核心理念：**规划深度匹配任务复杂度，质量门控保障关键节点，灵活迭代而非瀑布僵化**。
 
@@ -28,7 +28,7 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 ### Flow 模式 (快速迭代)
 
 ```
-propose ──► execute ──► verify
+propose ──► execute ──► verify ──► (finish)
 ```
 
 **适用**: 单文件修改、小bug修复、简单配置变更、明确的小任务
@@ -37,7 +37,7 @@ propose ──► execute ──► verify
 ### Standard 模式 (日常开发)
 
 ```
-clarify ──► propose ──► design ──► tasks ──► execute ──► review ──► verify
+clarify ──► propose ──► design ──► tasks ──► execute ──► review ──► verify ──► (finish)
 ```
 
 **适用**: 新功能开发、多文件修改、API变更、需要设计决策的任务
@@ -46,7 +46,7 @@ clarify ──► propose ──► design ──► tasks ──► execute ─
 ### Strict 模式 (关键系统)
 
 ```
-explore ──► clarify ──► propose ──► specs ──► design ──► tasks ──► execute ──► review ──► verify ──► archive
+explore ──► clarify ──► propose ──► specs ──► design ──► tasks ──► execute ──► review ──► verify ──► archive ──► finish
 ```
 
 **适用**: 跨模块重构、核心系统修改、团队协作、需要长期维护的功能
@@ -86,6 +86,8 @@ explore ──► clarify ──► propose ──► specs ──► design ─
  [verification]        ← 验证: 实证确认
        ↓
    [archive]           ← Strict: 归档上下文
+       ↓
+   [finish]            ← 收尾: 分支整合 + Worktree清理
 ```
 
 ---
@@ -237,6 +239,34 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 ---
 
+## Phase 10: 收尾清理
+
+**目标**: 闭合 Worktree 生命周期，整合分支，清理隔离环境。
+
+**适用**: 所有使用了 Git Worktree 的变更（Strict 必需，Standard/Flow 如果创建了 worktree 也适用）。未使用 worktree 的变更跳过此阶段。
+
+**前置条件**: 验证通过（Phase 8），归档完成（Phase 9，如适用）。
+
+**结构化选项**（提供给用户选择，不问开放性问题）:
+
+1. **合并到主分支** — 切到主分支 → pull → merge → 验证测试 → 删除 worktree 和分支
+2. **推送并创建 PR** — push → gh pr create → 保留 worktree 直到 PR 合并
+3. **保留当前状态** — 不清理，用户稍后自行处理
+4. **废弃变更** — 需用户确认 → 删除 worktree 和分支（force delete）
+
+**安全原则**: 测试未通过不提供选项；废弃需确认；合并后再次验证测试。
+
+**平台适配**:
+- Claude Code: 使用 `ExitWorktree(action="remove"/"keep")`
+- 其他平台: 输出对应的 `git worktree remove` / `git branch -d` 命令
+
+**完成后**: 更新 `.specpower.yaml` 中 status 为 `done`（选项1/2）或 `archived`（选项4）。
+
+> 详细执行步骤见 `references/phase-guide.md` - Phase 10
+> 收尾脚本: `scripts/finish-change.sh`
+
+---
+
 ## 变更目录管理
 
 ### 创建变更
@@ -311,6 +341,7 @@ Strict 模式下两者必须组合使用。
 | 子agent并行 | Yes | No | No |
 | Git worktree (Strict) | 自动 | 手动必需 | 手动必需 |
 | Git worktree (Standard/Flow) | 自动 | 手动可选 | 手动可选 |
+| Worktree 收尾清理 | ExitWorktree | 手动/脚本 | 手动/脚本 |
 | 工件系统 | Yes | Yes | Yes |
 | TDD流程 | Yes | Yes | Yes |
 | 两阶段审查 | 子agent | 内联 | 内联 |
@@ -333,6 +364,16 @@ Strict 模式下两者必须组合使用。
 ```
 
 或手动：确定模式 → 写提案 → 按模式执行剩余阶段
+
+### 收尾变更
+
+使用收尾脚本（推荐）:
+```bash
+./scripts/finish-change.sh <change-name-with-timestamp> [merge|pr|keep|discard]
+# 整合分支、清理 worktree、更新状态
+```
+
+或手动：按 Phase 10 步骤操作
 
 ### 参考资源
 
