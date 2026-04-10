@@ -99,7 +99,7 @@ glob "**/*auth*.spec.*"
 |------|---------|--------|------|
 | Flow | 影响 3+ 文件 | Standard | 范围超出单文件 |
 | Flow | 跨模块引用 | Standard | 耦合度高 |
-| Standard | 跨 4+ 模块且无测试 | Strict | 复杂度高 + 技术债 |
+| Standard | 跨 5+ 模块且无测试 | Strict | 复杂度高 + 技术债 |
 | Standard | 影响核心认证/支付/权限 | Strict | 关键系统 |
 | Strict | 只影响 1 个文件 | Standard 或 Flow | 范围过小，不需要 Strict |
 
@@ -851,7 +851,7 @@ Dispatch `code-reviewer` 子agent：
 2. **移动变更目录**
    ```bash
    mv docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS \
-      docs/spec-power/archive/YYYY-MM-DD-<name>/
+      docs/spec-power/archive/<change-name>-YYYYMMDDHHMMSS/
    ```
 
 3. **保留完整上下文**

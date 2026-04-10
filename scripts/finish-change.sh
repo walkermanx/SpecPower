@@ -99,6 +99,16 @@ check_branch() {
 
 BASE_BRANCH=$(detect_base_branch)
 
+# 检查是否在 worktree 内执行
+CURRENT_DIR=$(pwd)
+if [[ "$CURRENT_DIR" == *"/.worktrees/"* ]]; then
+    echo -e "${RED}错误: 不能在 worktree 目录内运行此脚本${NC}"
+    echo "请先切换到主项目目录："
+    echo "  cd <主项目根目录>"
+    echo "  ./scripts/finish-change.sh $CHANGE_NAME $ACTION"
+    exit 1
+fi
+
 echo -e "${CYAN}========================================${NC}"
 echo -e "${CYAN}SpecPower 变更收尾${NC}"
 echo -e "${CYAN}========================================${NC}"
@@ -155,6 +165,17 @@ case $ACTION in
             git merge "$BRANCH_NAME"
             echo -e "${GREEN}✓${NC} 合并完成"
 
+            # 合并后验证测试
+            echo ""
+            echo -e "${CYAN}>>> 验证合并后测试...${NC}"
+            read -p "请运行测试并确认全部通过。测试是否通过？[y/N]: " merge_test_ok
+            if [ "$merge_test_ok" != "y" ] && [ "$merge_test_ok" != "Y" ]; then
+                echo -e "${RED}测试未通过，回滚合并...${NC}"
+                git reset --hard HEAD~1
+                echo -e "${YELLOW}合并已回滚。请修复问题后重新运行。${NC}"
+                exit 1
+            fi
+
             # 删除分支
             git branch -d "$BRANCH_NAME"
             echo -e "${GREEN}✓${NC} 分支已删除: $BRANCH_NAME"
@@ -194,8 +215,16 @@ case $ACTION in
             fi
         fi
 
-        # 清理 worktree（代码已推送，可以安全清理）
-        cleanup_worktree
+        # 询问是否清理 worktree
+        echo ""
+        read -p "代码已推送。是否清理 worktree？[y/N]: " cleanup_choice
+        if [ "$cleanup_choice" = "y" ] || [ "$cleanup_choice" = "Y" ]; then
+            cleanup_worktree
+            echo -e "${YELLOW}注意: worktree 已清理，如需继续修改请重新 checkout 分支${NC}"
+        else
+            echo -e "${YELLOW}保留 worktree: $WORKTREE_PATH${NC}"
+            echo "PR 合并后可运行: git worktree remove $WORKTREE_PATH"
+        fi
 
         # 更新状态
         update_status "review"

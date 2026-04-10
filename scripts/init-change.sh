@@ -93,10 +93,11 @@ EOF
 # 根据模式添加不同的工件状态
 if [ "$MODE" == "strict" ]; then
     cat >> "$BASE_DIR/.specpower.yaml" <<EOF
-  explore: pending
-  specs: pending
-  design: pending
-  tasks: pending
+  explore: pending         # 无依赖，可立即开始
+  clarify: blocked         # 依赖 explore
+  specs: blocked           # 依赖 proposal
+  design: blocked          # 依赖 proposal
+  tasks: blocked           # 依赖 specs + design
   implementation: blocked
   review: blocked
   verification: blocked
@@ -104,15 +105,16 @@ if [ "$MODE" == "strict" ]; then
 EOF
 elif [ "$MODE" == "standard" ]; then
     cat >> "$BASE_DIR/.specpower.yaml" <<EOF
-  design: blocked
-  tasks: blocked
+  clarify: pending         # 可选，可立即开始
+  design: blocked          # 依赖 proposal
+  tasks: blocked           # 依赖 design
   implementation: blocked
   review: blocked
   verification: blocked
 EOF
 else  # flow
     cat >> "$BASE_DIR/.specpower.yaml" <<EOF
-  implementation: blocked
+  implementation: blocked  # 依赖口头提案
   verification: blocked
 EOF
 fi
