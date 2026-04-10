@@ -160,7 +160,29 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 **自审要点**: 多方案对比、决策理由具体、接口定义精确、识别风险。
 
+**Strict 模式增强：多角色方案对比**
+
+Strict 模式在设计阶段引入三视角并行方案设计，从不同优化目标出发产出竞争性方案，避免单一视角的确认偏误：
+
+```
+[共享上下文] 主设计者产出现状/目标/约束
+      ↓
+[三角色并行] 架构师 + 性能专家 + 资深开发 各出聚焦方案（子agent）
+      ↓
+[技术负责人] 5维度对比矩阵 + 推荐方案
+      ↓
+[用户评审] 选择或要求修订 → 通过后展开为完整 design.md
+```
+
+- **架构师**：系统分层、模块解耦、可扩展性、长期可维护性
+- **性能专家**：响应速度、内存占用、IO优化、并发处理、瓶颈预防
+- **资深开发**：开发效率、代码简洁、快速上线、技术债务控制
+- **技术负责人对比维度**：架构合理性、性能表现、开发成本、可维护性、风险程度
+
+无子agent时降级为顺序内联：主agent依次切换视角，产出格式不变。
+
 > 详细格式和模板见 `references/phase-guide.md` - Phase 4 和 `references/artifact-system.md`
+> 三角色子agent提示见 `agents/architect.md`、`agents/perf-expert.md`、`agents/senior-dev.md`
 
 ---
 
@@ -339,6 +361,7 @@ Strict 模式下两者必须组合使用。
 | 能力 | Claude Code | Cursor | Copilot/其他 |
 |------|------------|--------|-------------|
 | 子agent并行 | Yes | No | No |
+| 多角色设计 (Strict) | 3子agent并行 | 顺序内联 | 顺序内联 |
 | Git worktree (Strict) | 自动 | 手动必需 | 手动必需 |
 | Git worktree (Standard/Flow) | 自动 | 手动可选 | 手动可选 |
 | Worktree 收尾清理 | ExitWorktree | 手动/脚本 | 手动/脚本 |
@@ -347,6 +370,7 @@ Strict 模式下两者必须组合使用。
 | 两阶段审查 | 子agent | 内联 | 内联 |
 
 无子agent时的降级策略：
+- 多角色设计改为顺序内联（主agent依次切换视角）
 - 审查改为自我审查（用清单代替独立子agent）
 - 并行执行改为顺序执行
 - 所有工件和质量规则不变
@@ -388,7 +412,10 @@ Strict 模式下两者必须组合使用。
 - `agents/implementer.md` — 任务实现者
 - `agents/spec-reviewer.md` — 规范符合审查
 - `agents/code-reviewer.md` — 代码质量审查
+- `agents/architect.md` — 架构师视角设计（Strict）
+- `agents/perf-expert.md` — 性能专家视角设计（Strict）
+- `agents/senior-dev.md` — 资深开发视角设计（Strict）
 
 **示例和工具**:
-- `examples/add-user-avatars/` — Standard模式端到端示例
+- `examples/add-user-avatars/` — Standard模式端到端示例（含Strict多角色方案对比示例）
 - `scripts/init-change.sh` — 自动创建变更目录结构
