@@ -8,8 +8,8 @@
 
 | 工件 | 生成文件 | 依赖 | 所属模式 |
 |------|---------|------|---------|
-| explore | (内嵌于proposal) | 无 | Strict |
-| clarify | (内嵌于proposal) | explore(如有) | Standard+ |
+| explore | (结论内嵌于proposal) | 无 | Strict |
+| clarify | (结论内嵌于proposal) | explore(如有) | Standard+ |
 | proposal | `proposal.md` | clarify(如有) | 所有 |
 | specs | `specs/**/*.md` | proposal | Strict |
 | design | `design.md` | proposal | Standard+ |
@@ -18,6 +18,9 @@
 | review | (审查记录) | implementation | Standard+ |
 | verification | (验证报告) | implementation | 所有 |
 | archive | `archive/` 目录 | verification | Strict |
+| finish | (分支整合) | verification + archive(如有) | 所有 |
+
+**注**: explore 和 clarify 虽不生成独立文件，但在 `.specpower.yaml` 中追踪以反映工作流进度。
 
 ### 状态转移
 
