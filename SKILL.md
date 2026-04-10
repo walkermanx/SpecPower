@@ -1,12 +1,12 @@
 ---
 name: spec-power
-version: "1.2.0"
-description: "SpecPower - 规范驱动的开发工作流。触发关键词:'开发新功能'、'重构模块'、'复杂bug'、'架构设计'、'写计划'、'分步做'、'规范化开发'、'拆解任务'、'团队协作'、'核心系统'、'多模块'、'TDD'。自动推荐Flow(快速)/Standard(日常)/Strict(关键)三档模式。强制测试驱动开发,三层质量审查(自审/规范审查/代码审查),支持子agent并行执行。适用于所有需要结构化规划的开发工作,不适用于简单查询或单行代码修改。"
+version: "1.3.0"
+description: "SpecPower - 规范驱动的开发工作流。触发关键词:'开发新功能'、'重构模块'、'复杂bug'、'架构设计'、'写计划'、'分步做'、'规范化开发'、'拆解任务'、'团队协作'、'核心系统'、'多模块'、'TDD'。自动推荐Flow(快速)/Standard(日常)/Strict(关键)三档模式。Standard+模式含需求澄清阶段(逐个澄清、方向速览、范围确认),强制测试驱动开发,三层质量审查(自审/规范审查/代码审查),支持子agent并行执行。适用于所有需要结构化规划的开发工作,不适用于简单查询或单行代码修改。"
 ---
 
 # SpecPower: 规范驱动的超能力开发工作流
 
-> **版本**: 1.2.0 | **更新日志**: [CHANGELOG.md](CHANGELOG.md)
+> **版本**: 1.3.0 | **更新日志**: [CHANGELOG.md](CHANGELOG.md)
 
 SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行纪律，形成一套完整的软件开发方法论。核心理念：**规划深度匹配任务复杂度，质量门控保障关键节点，灵活迭代而非瀑布僵化**。
 
@@ -14,7 +14,7 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 
 ## 🚀 快速开始
 
-告诉我你的任务 → 我推荐模式(Flow/Standard/Strict) → 确认后引导你完成各阶段 → 自动应用TDD + 多层审查 + 子agent并行。
+告诉我你的任务 → 我推荐模式(Flow/Standard/Strict) → 确认后引导你完成各阶段 → Standard+模式先澄清需求再写提案 → 自动应用TDD + 多层审查 + 子agent并行。
 
 **新用户**: 先读"模式选择"了解三档工作流，再看"变更目录管理"了解文件组织。
 **老用户**: 直接说任务，我会自动匹配模式并开始。详细方法论见下文。
@@ -37,7 +37,7 @@ propose ──► execute ──► verify
 ### Standard 模式 (日常开发)
 
 ```
-propose ──► design ──► tasks ──► execute ──► review ──► verify
+clarify ──► propose ──► design ──► tasks ──► execute ──► review ──► verify
 ```
 
 **适用**: 新功能开发、多文件修改、API变更、需要设计决策的任务
@@ -46,7 +46,7 @@ propose ──► design ──► tasks ──► execute ──► review ─�
 ### Strict 模式 (关键系统)
 
 ```
-explore ──► propose ──► specs ──► design ──► tasks ──► execute ──► review ──► verify ──► archive
+explore ──► clarify ──► propose ──► specs ──► design ──► tasks ──► execute ──► review ──► verify ──► archive
 ```
 
 **适用**: 跨模块重构、核心系统修改、团队协作、需要长期维护的功能
@@ -70,6 +70,8 @@ explore ──► propose ──► specs ──► design ──► tasks ─�
 
 ```
   [explore]            ← Strict: 前期调研
+      ↓
+  [clarify]            ← Standard+: 需求澄清
       ↓
   [proposal]           ← 所有模式: 意图和范围
     ↓        ↓
@@ -97,6 +99,26 @@ explore ──► propose ──► specs ──► design ──► tasks ─�
 **产出**: 探索结果体现在提案的 Context 部分，不单独生成文件。
 
 > 详细执行指南见 `references/phase-guide.md` - Phase 1
+
+---
+
+## Phase 1.5: 需求澄清 (Standard+)
+
+**目标**: 在写提案之前，通过对话澄清模糊需求、确认方向、控制范围。
+
+**适用条件**: Standard 模式 1-3 个关键问题快速确认；Strict 模式完整澄清流程；Flow 模式跳过；用户需求已非常明确时可跳过。
+
+**核心步骤**:
+1. 快速上下文感知（复用 explore 结果或快速扫描）
+2. 逐个澄清关键问题（一次一个，优先多选题）
+3. 方向速览（2-3 个方向性选择，非完整设计）
+4. 范围确认（分解大任务、过滤无关需求、YAGNI 剪枝）
+
+**产出**: 不生成独立文件，结论直接注入后续 proposal。
+
+**职责边界**: clarify 面向人（理解意图），explore 面向系统（理解代码），design 做技术细节。
+
+> 详细执行指南见 `references/phase-guide.md` - Phase 1.5
 
 ---
 

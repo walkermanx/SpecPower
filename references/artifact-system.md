@@ -9,7 +9,8 @@
 | 工件 | 生成文件 | 依赖 | 所属模式 |
 |------|---------|------|---------|
 | explore | (内嵌于proposal) | 无 | Strict |
-| proposal | `proposal.md` | 无 | 所有 |
+| clarify | (内嵌于proposal) | explore(如有) | Standard+ |
+| proposal | `proposal.md` | clarify(如有) | 所有 |
 | specs | `specs/**/*.md` | proposal | Strict |
 | design | `design.md` | proposal | Standard+ |
 | tasks | `tasks.md` | specs(如有) + design | Standard+ |
