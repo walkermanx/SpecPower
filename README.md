@@ -395,8 +395,9 @@ A: 对每个意见做技术评估:
 ## 📞 支持
 
 - **文档**: [SKILL.md](SKILL.md)
-- **问题反馈**: [GitHub Issues](https://github.com/your-org/spec-power/issues)
-- **讨论区**: [GitHub Discussions](https://github.com/your-org/spec-power/discussions)
+- **问题反馈**: [GitHub Issues](https://github.com/walkermanx/SpecPower/issues)
+- **个人邮箱**: [weizizhang51@gmail.com](mailto:weizizhang51@gmail.com)
+- **Telegram**: [t.me/walkermanx](https://t.me/walkermanx)
 
 ---
 
