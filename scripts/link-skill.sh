@@ -244,34 +244,40 @@ menu_confirm() {
   MENU_RESULT=$cur
 }
 
-# ─── Step 0: 选择源 Skill 目录 ───
-SOURCE_DIRS=()
-SOURCE_LABELS=()
+# ─── Step 0: 自动检测源 Skill 目录 ───
+SELECTED_SOURCE_DIR=""
 
-# 1. 当前脚本所在目录
-SOURCE_DIRS+=("$SCRIPT_DIR")
-SOURCE_LABELS+=("[当前目录] $(basename "$SCRIPT_DIR")")
-
-# 2. agents 目录下的 skill
-if [[ -d "$SCRIPT_DIR/agents" ]]; then
-  # 使用 find 查找 agents 下第一层包含 SKILL.md 的目录
-  while IFS= read -r -d '' agent_dir; do
-    if [[ -f "$agent_dir/SKILL.md" ]]; then
-      SOURCE_DIRS+=("$agent_dir")
-      SOURCE_LABELS+=("[Agent] $(basename "$agent_dir")")
-    fi
-  done < <(find "$SCRIPT_DIR/agents" -mindepth 1 -maxdepth 1 -type d -print0)
+# 1. 先检查脚本所在路径下是否有 SKILL.md
+if [[ -f "$SCRIPT_DIR/SKILL.md" ]]; then
+  SELECTED_SOURCE_DIR="$SCRIPT_DIR"
+# 2. 否则检查脚本所在路径的上一级是否有 SKILL.md
+else
+  PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+  if [[ -f "$PARENT_DIR/SKILL.md" ]]; then
+    SELECTED_SOURCE_DIR="$PARENT_DIR"
+  # 3. 否则在脚本所在路径往下找（最多往下找一层）
+  else
+    # 查找第一个包含 SKILL.md 的子目录
+    while IFS= read -r -d '' subdir; do
+      if [[ -f "$subdir/SKILL.md" ]]; then
+        SELECTED_SOURCE_DIR="$subdir"
+        break
+      fi
+    done < <(find "$SCRIPT_DIR" -mindepth 1 -maxdepth 1 -type d -print0)
+  fi
 fi
 
-if [[ ${#SOURCE_DIRS[@]} -eq 1 ]]; then
-  SELECTED_SOURCE_DIR="${SOURCE_DIRS[0]}"
-else
-  menu_single "📦 请选择要链接的源 Skill 目录:" "${SOURCE_LABELS[@]}"
-  if [[ $MENU_RESULT -eq 0 ]]; then
-    echo "已放弃"
-    exit 0
-  fi
-  SELECTED_SOURCE_DIR="${SOURCE_DIRS[$((MENU_RESULT-1))]}"
+# 4. 如果未找到，提示异常并退出
+if [[ -z "$SELECTED_SOURCE_DIR" ]]; then
+  echo "❌ 错误: 未找到包含 SKILL.md 的目录"
+  echo ""
+  echo "已检查："
+  echo "  - 脚本所在目录: $SCRIPT_DIR"
+  echo "  - 上一级目录: $(dirname "$SCRIPT_DIR")"
+  echo "  - 脚本所在目录的子目录（一层）"
+  echo ""
+  echo "请确保在包含 SKILL.md 的 Skill 目录中运行此脚本，或将脚本放在相关位置。"
+  exit 1
 fi
 
 SKILL_NAME="$(basename "$SELECTED_SOURCE_DIR")"

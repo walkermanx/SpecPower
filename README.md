@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -12,13 +12,16 @@
 ## ✨ 核心特性
 
 - 🎯 **两阶段智能推荐** — 初判 → 快速验证（边界情况）→ 确认，避免"信息最少时做最重要决策"
+- 🔄 **恢复进行中变更** — 新对话自动检测 in-progress 变更，无缝继续工作
+- ↩️ **阶段回退协议** — 发现问题时可回退到前置阶段，保留已有工作
 - 💬 **需求澄清机制** — Standard+ 模式自动澄清模糊需求、确认方向、控制范围
-- 🧪 **强制测试驱动开发** — TDD 铁律确保每行代码都经过验证
-- 🔍 **三层质量审查** — 自审 + 规范审查 + 代码审查,层层把关
-- 🚀 **子 Agent 并行执行** — 独立任务并行处理,大幅提升效率
-- 📋 **完整工件追溯** — 从提案到归档,每个决策都有据可查
-- 🔒 **Git Worktree 隔离** — 关键变更物理隔离,保障主分支稳定
-- 📐 **Delta 规范格式** — 增量式行为描述,多变更无冲突
+- 🧪 **灵活的测试驱动** — TDD 核心流程 + 合理豁免（配置/样式/文档）
+- 📘 **Flow 模式完整指南** — 轻量任务专属文档，3 个端到端示例
+- 🔍 **多层质量审查** — 自审 + 代码审查 + 规范审查，层层把关
+- 🚀 **子 Agent 并行执行** — 独立任务并行处理，大幅提升效率
+- 📋 **完整工件追溯** — 从提案到归档，每个决策都有据可查
+- 🔒 **Git Worktree 隔离** — 关键变更物理隔离，保障主分支稳定
+- 📐 **Delta 规范格式** — 增量式行为描述，多变更无冲突
 
 ---
 
@@ -34,41 +37,43 @@
 
 ### 安装
 
-1. **克隆或下载技能文件**
+**方法 1: 使用安装脚本（推荐）**
 
 ```bash
-# 方式 1: 直接使用(将 SKILL.md 放入项目)
-cp spec-power/SKILL.md your-project/
+# 克隆仓库
+git clone https://github.com/walkermanx/SpecPower.git
+cd SpecPower
 
-# 方式 2: 作为 Git 子模块
-cd your-project
-git submodule add https://github.com/your-org/spec-power.git docs/spec-power-skill
+# 运行安装脚本
+./scripts/link-skill.sh
+
+# 脚本会自动:
+# - 检测包含 SKILL.md 的 Skill 目录
+# - 列出可用的安装目标（项目级/用户级）
+# - 通过软链接安装到选定位置
 ```
 
-2. **初始化项目结构**
+**方法 2: 手动安装**
 
 ```bash
-# 创建必要的目录
-mkdir -p docs/spec-power/{changes,specs,archive}
+# 下载或克隆仓库
+git clone https://github.com/walkermanx/SpecPower.git
 
-# 复制初始化脚本(可选但推荐)
-cp spec-power/scripts/init-change.sh scripts/
-chmod +x scripts/init-change.sh
+# 复制到对应平台的 skills 目录
+# 用户级安装（所有项目可用）
+cp -r SpecPower ~/.claude/skills/spec-power
+
+# 或项目级安装（仅当前项目）
+cp -r SpecPower /path/to/your-project/.claude/skills/spec-power
 ```
 
-3. **配置 AI 助手**
+**支持的平台**:
+- **Claude Code**: `~/.claude/skills/` (用户级) 或 `.claude/skills/` (项目级)
+- **Cursor**: `~/.cursor/skills/` (用户级) 或 `.cursor/skills/` (项目级)
+- **MiCode**: `~/.micode/skills/` (用户级) 或 `.micode/skills/` (项目级)
+- **OpenCode**: `~/.config/opencode/skills/` (用户级) 或 `.opencode/skills/` (项目级)
 
-**Claude Code**:
-```bash
-# SKILL.md 会被自动识别
-# 或在对话中提及: @SKILL.md
-```
-
-**Cursor**:
-将 SKILL.md 内容添加到 `.cursorrules` 或在对话中引用。
-
-**其他工具**:
-在系统提示词中引入 SKILL.md 内容。
+安装后，在对话中使用 `/spec-power` 即可调用。
 
 ### 首次使用
 
