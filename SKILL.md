@@ -108,7 +108,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 **完成条件** — 正确收尾：
 - ✅ **收尾清理** (Phase 10): Worktree 清理已执行（4 选项之一）
 
-**说明**: Phase 2（提案）、Phase 5（任务）由工件 DAG 保障，Phase 6（执行+逐任务审查）由 TDD 铁律和修复→重审闭环保障，Phase 8（验证）由验证清单保障，不需要独立检查。缺失任何一项检查点需立即提醒用户。
+**说明**: Phase 1.5（需求澄清）为可选阶段，跳过条件已在 Phase 1.5 章节定义，不需要独立检查。Phase 2（提案）、Phase 5（任务）由工件 DAG 保障，Phase 6（执行+逐任务审查）由 TDD 铁律和修复→重审闭环保障，Phase 8（验证）由验证清单保障，不需要独立检查。缺失任何一项检查点需立即提醒用户。
 
 ### 如何推荐
 
@@ -332,7 +332,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 自我审查（30秒）— 代码完整性、测试覆盖、安全基线（所有模式）
      ↓
 规范符合审查（Strict，子agent）— 对比specs/检查覆盖和正确性
-     ↓
+     ↓ （spec 审查通过后才执行下一步）
 代码质量审查（Standard+，子agent）— 架构、质量、安全、可维护性
      ↓
 问题修复 → 重新审查（闭环循环，直到通过）
@@ -377,6 +377,8 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 - **代码风格一致性** — 不同子agent产出的代码风格是否统一
 
 **问题分级**: Critical（必须修复）/ Important（应该修复）/ Suggestion（不阻塞）。
+
+**修复闭环**: 全局审查发现 Critical/Important 问题后：修复 → 重跑全量测试 → 重新全局审查（最多2轮，超过则升级给用户）。
 
 > 详细审查方法和清单见 `references/review-verify.md` 和 `references/phase-guide.md` - Phase 7
 
@@ -440,7 +442,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 **结构化选项**（提供给用户选择，不问开放性问题）:
 
 1. **合并到主分支** — 切到主分支 → pull → merge → 验证测试 → 删除 worktree 和分支
-2. **推送并创建 PR** — push → gh pr create → 保留 worktree 直到 PR 合并
+2. **推送并创建 PR** — push → gh pr create → 清理 worktree（代码已推送到远端）。PR 合并后需手动将 `.specpower.yaml` status 更新为 `done`
 3. **保留当前状态** — 不清理，用户稍后自行处理
 4. **废弃变更** — 需用户确认 → 删除 worktree 和分支（force delete）
 
@@ -482,6 +484,7 @@ name: <change-name>-YYYYMMDDHHMMSS
 mode: standard          # flow | standard | strict
 created: 2026-04-08
 status: in-progress     # in-progress | review | done | archived
+# 状态流转: in-progress → done (合并) | in-progress → review (PR) → done (PR合并后手动更新) | in-progress → archived (废弃)
 ```
 
 ### Git Worktree 隔离
