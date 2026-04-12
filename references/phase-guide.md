@@ -1091,11 +1091,12 @@ EOF
 )"
 ```
 
-然后执行 Step 5 清理 worktree。
+然后执行 Step 5 清理 worktree（推荐 remove，代码已推送到远端）。
 
 更新 `.specpower.yaml`:
 ```yaml
 status: review
+# PR 合并后需手动更新为 done
 ```
 
 #### 选项 3: 保留当前状态
@@ -1141,8 +1142,8 @@ status: archived
 # 选项 1、4（完全清理）
 ExitWorktree(action="remove")
 
-# 选项 2（保留到 PR 合并，或先清理）
-ExitWorktree(action="keep")  # 或 action="remove" 如果代码已推送
+# 选项 2（代码已推送，推荐清理）
+ExitWorktree(action="remove")
 ```
 
 **其他平台（手动）**:
