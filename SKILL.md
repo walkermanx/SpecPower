@@ -101,13 +101,13 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 - ✅ **探索阶段** (Phase 1): 全局上下文理解完成（现状/约束/影响范围）
 - ✅ **规范阶段** (Phase 3): Delta 规范已生成（ADDED/MODIFIED/REMOVED 格式）
 - ✅ **设计阶段** (Phase 4): 技术方案确定（多角色对比或单一方案说明）
-- ✅ **审查阶段** (Phase 7): 双层审查完成（代码质量 + 规范符合）
+- ✅ **全局审查** (Phase 7): 跨任务一致性检查完成（接口对接 + 整体架构）
 - ✅ **归档阶段** (Phase 9): 上下文归档完成（specs 合并 + 目录移动）
 
 **完成条件** — 正确收尾：
 - ✅ **收尾清理** (Phase 10): Worktree 清理已执行（4 选项之一）
 
-**说明**: Phase 2（提案）、Phase 5-6（任务/执行）、Phase 8（验证）由工件 DAG、TDD 铁律、验证清单等机制保障，不需要独立检查。缺失任何一项检查点需立即提醒用户。
+**说明**: Phase 2（提案）、Phase 5（任务）由工件 DAG 保障，Phase 6（执行+逐任务审查）由 TDD 铁律和修复→重审闭环保障，Phase 8（验证）由验证清单保障，不需要独立检查。缺失任何一项检查点需立即提醒用户。
 
 ### 如何推荐
 
@@ -180,9 +180,9 @@ explore ──► clarify ──► propose ──► specs ──► design ─
     ↓        ↓
      [tasks]           ← 合并依赖: 分解计划
        ↓
- [implementation]      ← 执行: TDD + 子agent
+ [implementation]      ← 执行+逐任务审查: TDD + 审查闭环
        ↓
-    [review]           ← 审查: 规范 + 代码
+    [review]           ← 全局审查: 跨任务一致性
        ↓
  [verification]        ← 验证: 实证确认
        ↓
@@ -309,47 +309,75 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 ---
 
-## Phase 6: 执行
+## Phase 6: 执行与逐任务审查
 
-**目标**: 产出经过TDD验证的代码实现。
+**目标**: 产出经过TDD验证的代码实现。Standard+ 模式下每个任务完成后立即通过审查门控。
+
+**按模式区分**:
+
+**Flow 模式**: 直接执行 TDD，完成后自我审查（30秒清单）即可，无需子agent审查。详见 `references/flow-mode-guide.md`。
+
+**Standard+ 模式**: 审查内嵌在每个任务的完成流程中。每完成一个任务，立即通过审查门控，问题在传染到下游任务前被捕获。
 
 **执行方式**: 
 - **子agent并行**（Claude Code）：无依赖任务并行dispatch
 - **内联顺序**（其他平台）：按依赖顺序逐个执行
 
+**逐任务循环**（Standard+ 模式，每个任务必须完整通过此循环）:
+
+```
+实现（TDD: RED→GREEN→REFACTOR）
+     ↓
+自我审查（30秒）— 代码完整性、测试覆盖、安全基线（所有模式）
+     ↓
+规范符合审查（Strict，子agent）— 对比specs/检查覆盖和正确性
+     ↓
+代码质量审查（Standard+，子agent）— 架构、质量、安全、可维护性
+     ↓
+问题修复 → 重新审查（闭环循环，直到通过）
+     ↓
+验证通过 → 标记任务完成 → 下一个任务
+```
+
 **TDD铁律**: RED → 验证RED → GREEN → 验证GREEN → REFACTOR。如果在没有失败测试的情况下写了生产代码，停下来删掉，先写测试。
+
+**验证纪律**: 每个任务/步骤标记完成前，必须有**新鲜的验证证据**（测试运行输出）。不是"我认为通过了"，而是"运行结果如下"。此规则适用于所有模式。
+
+**模型选择**: 机械实现任务用轻量模型，多文件集成用标准模型，架构决策用最强模型。详见 `execution-guide.md`。
 
 **系统调试**: 遇到问题使用四阶段法——根因调查、假设形成、验证、修复。
 
+**修复→重审闭环**（Standard+）:
+
+审查发现问题后，按级别处理：
+- **Critical/Important** → 实现者修复 → 审查者重新审查 → 通过则继续，否则再次修复（最多3轮，超过则升级给用户）
+- **Suggestion** → 记录但不阻塞
+
+**关键原则**: 审查者必须**重新审查修复后的代码**，不信任"已修复"声明。
+
 > 详细执行指南和TDD流程见 `references/execution-guide.md` 和 `references/phase-guide.md` - Phase 6
+> Flow 模式详见 `references/flow-mode-guide.md`
 > 子agent提示模板见 `agents/implementer.md`
+> 审查方法和清单见 `references/review-verify.md`
+> 子agent提示见 `agents/spec-reviewer.md` 和 `agents/code-reviewer.md`
 
 ---
 
-## Phase 7: 审查 (Standard+)
+## Phase 7: 全局审查 (Standard+)
 
-**目标**: 通过三层质量网在不同层面捕获问题。
+**目标**: 所有任务完成后，从全局视角检查跨任务一致性和整体质量。
 
-**第一层：自我审查**（所有模式，30秒）- 代码完整性、测试覆盖、安全基线。
+**定位**: Phase 6 的逐任务审查捕获单任务内的问题，Phase 7 捕获**任务间的集成问题**和**全局架构问题**。
 
-**第二层：规范符合审查**（Strict，子agent）- 对比specs/检查实现覆盖和正确性。
+**审查内容**:
+- **跨任务接口一致性** — 不同任务产出的接口是否正确对接
+- **整体架构评估** — 所有变更组合后的架构是否合理
+- **全量回归测试** — 运行完整测试套件，确认无交叉影响
+- **代码风格一致性** — 不同子agent产出的代码风格是否统一
 
-**第三层：代码质量审查**（Standard+，子agent）- 架构设计、代码质量、安全性、可维护性。
-
-
-**⚠️ Critical Issues 处理策略**（P0改进）：
-Phase 7 审查识别出 Critical 问题后的两种模式：
-1. **Review-Only 模式**（默认）：文档化问题 + 修复建议 + 时间估算，由人工或后续流程修复
-2. **Auto-Fix 模式**（可选）：立即创建修复任务并执行，回到 Phase 6 执行 → Phase 7 复审循环
-
-选择建议：
-- 简单修复（<5分钟）→ Auto-Fix（如格式化、typo、明显逻辑错误）
-- 复杂修复（>5分钟）→ Review-Only（如架构调整、性能优化、安全加固）
-- 默认使用 Review-Only，用户可显式请求 Auto-Fix
 **问题分级**: Critical（必须修复）/ Important（应该修复）/ Suggestion（不阻塞）。
 
 > 详细审查方法和清单见 `references/review-verify.md` 和 `references/phase-guide.md` - Phase 7
-> 子agent提示见 `agents/spec-reviewer.md` 和 `agents/code-reviewer.md`
 
 ---
 
@@ -506,12 +534,13 @@ Strict 模式下两者必须组合使用。
 | Worktree 收尾清理 | ExitWorktree | 手动/脚本 | 手动/脚本 |
 | 工件系统 | Yes | Yes | Yes |
 | TDD流程 | Yes | Yes | Yes |
-| 两阶段审查 | 子agent | 内联 | 内联 |
+| 逐任务审查 | 子agent闭环 | 内联自审 | 内联自审 |
 
 无子agent时的降级策略：
 - 多角色设计改为顺序内联（主agent依次切换视角）
-- 审查改为自我审查（用清单代替独立子agent）
+- 逐任务审查改为清单驱动的自审（审查维度不变，只是执行方式不同）
 - 并行执行改为顺序执行
+- 修复→重审闭环改为修复→自审验证
 - 所有工件和质量规则不变
 
 ---
