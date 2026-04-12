@@ -315,53 +315,19 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **目标**: 产出经过TDD验证的代码实现。Standard+ 模式下每个任务完成后立即通过审查门控。
 
-**按模式区分**:
+**核心机制**:
+- **TDD铁律**: 先写失败测试，再写实现。没有例外。
+- **逐任务审查**: 每完成一个任务立即审查（自审→spec审查→code审查），问题在传染到下游前被捕获。
+- **修复→重审闭环**: Critical/Important 问题修复后审查者必须重新审查（最多3轮，超过升级用户）。
+- **验证纪律**: 每个完成声明必须有**新鲜的验证证据**。详见 `references/mindset.md` - 验证纪律。
 
-**Flow 模式**: 直接执行 TDD，完成后自我审查（30秒清单）即可，无需子agent审查。详见 `references/flow-mode-guide.md`。
+**执行方式**: 子agent并行（Claude Code）或内联顺序（其他平台）。
 
-**Standard+ 模式**: 审查内嵌在每个任务的完成流程中。每完成一个任务，立即通过审查门控，问题在传染到下游任务前被捕获。
-
-**执行方式**: 
-- **子agent并行**（Claude Code）：无依赖任务并行dispatch
-- **内联顺序**（其他平台）：按依赖顺序逐个执行
-
-**逐任务循环**（Standard+ 模式，每个任务必须完整通过此循环）:
-
-```
-实现（TDD: RED→GREEN→REFACTOR）
-     ↓
-自我审查（30秒）— 代码完整性、测试覆盖、安全基线（所有模式）
-     ↓
-规范符合审查（Strict，子agent）— 对比specs/检查覆盖和正确性
-     ↓ （spec 审查通过后才执行下一步）
-代码质量审查（Standard+，子agent）— 架构、质量、安全、可维护性
-     ↓
-问题修复 → 重新审查（闭环循环，直到通过）
-     ↓
-验证通过 → 标记任务完成 → 下一个任务
-```
-
-**TDD铁律**: RED → 验证RED → GREEN → 验证GREEN → REFACTOR。如果在没有失败测试的情况下写了生产代码，停下来删掉，先写测试。
-
-**验证纪律**: 每个任务/步骤标记完成前，必须有**新鲜的验证证据**（测试运行输出）。不是"我认为通过了"，而是"运行结果如下"。此规则适用于所有模式。
-
-**模型选择**: 机械实现任务用轻量模型，多文件集成用标准模型，架构决策用最强模型。详见 `execution-guide.md`。
-
-**系统调试**: 遇到问题使用四阶段法——根因调查、假设形成、验证、修复。
-
-**修复→重审闭环**（Standard+）:
-
-审查发现问题后，按级别处理：
-- **Critical/Important** → 实现者修复 → 审查者重新审查 → 通过则继续，否则再次修复（最多3轮，超过则升级给用户）
-- **Suggestion** → 记录但不阻塞
-
-**关键原则**: 审查者必须**重新审查修复后的代码**，不信任"已修复"声明。
-
-> 详细执行指南和TDD流程见 `references/execution-guide.md` 和 `references/phase-guide-execution.md` - Phase 6
+> ⚠️ 进入此阶段前，READ `references/phase-guide-execution.md` - Phase 6（含逐任务循环图、审查详解、闭环流程）
+> TDD详细流程见 `references/execution-guide.md`
 > Flow 模式详见 `references/flow-mode-guide.md`
-> 子agent提示模板见 `agents/implementer.md`
-> 审查方法和清单见 `references/review-verify.md`
-> 子agent提示见 `agents/spec-reviewer.md` 和 `agents/code-reviewer.md`
+> 子agent提示: `agents/implementer.md`、`agents/spec-reviewer.md`、`agents/code-reviewer.md`
+> 审查清单见 `references/review-verify.md`
 
 ---
 
