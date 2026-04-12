@@ -18,8 +18,9 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 
 1. **扫描变更目录**
    ```bash
-   find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
+   [ -d docs/spec-power/changes ] && find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
    ```
+   **注意**: Flow 模式不创建变更目录，因此不支持跨会话恢复。Flow 任务应在单次会话内完成。
 
 2. **读取变更状态**
    - 读取 `.specpower.yaml` 确认模式、工件状态
@@ -182,8 +183,8 @@ explore ──► clarify ──► propose ──► specs ──► design ─
        ↓
  [implementation]      ← 执行+逐任务审查: TDD + 审查闭环
        ↓
-    [review]           ← 全局审查: 跨任务一致性
-       ↓
+    [review]           ← 全局审查: 跨任务一致性 (Standard+)
+       ↓                  (Flow 跳过, verification 直接依赖 implementation)
  [verification]        ← 验证: 实证确认
        ↓
    [archive]           ← Strict: 归档上下文

@@ -14,9 +14,9 @@
 | specs | `specs/**/*.md` | proposal | Strict |
 | design | `design.md` | proposal | Standard+ |
 | tasks | `tasks.md` | specs(如有) + design | Standard+ |
-| implementation | 源代码 | tasks(Standard+) 或 proposal(Flow) | 所有 |
-| review | (审查记录) | implementation | Standard+ |
-| verification | (验证报告) | implementation | 所有 |
+| implementation | 源代码（含逐任务审查） | tasks(Standard+) 或 proposal(Flow) | 所有 |
+| review | (全局审查记录) | implementation | Standard+ |
+| verification | (验证报告) | review(Standard+) 或 implementation(Flow) | 所有 |
 | archive | `archive/` 目录 | verification | Strict |
 | finish | (分支整合) | verification + archive(如有) | 所有 |
 

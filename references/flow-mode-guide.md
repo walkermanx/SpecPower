@@ -278,6 +278,8 @@ git checkout -b fix-login-bug
 git checkout main && git merge fix-login-bug
 ```
 
+**注意**: 因为不创建变更目录和 `.specpower.yaml`，Flow 模式**不支持跨会话恢复**。如果对话中断，需要手动判断进度。Flow 任务本身足够小（<30分钟），应在单次会话内完成。
+
 ### Q: Flow 模式需要审查吗？
 
 **A**: 自我审查（30秒清单）是必需的。代码质量审查可选。
