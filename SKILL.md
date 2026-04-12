@@ -203,7 +203,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 **产出**: 探索结果体现在提案的 Context 部分，不单独生成文件。
 
-> 详细执行指南见 `references/phase-guide.md` - Phase 1
+> 详细执行指南见 `references/phase-guide-planning.md` - Phase 1
 
 ---
 
@@ -223,7 +223,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 **职责边界**: clarify 面向人（理解意图），explore 面向系统（理解代码），design 做技术细节。
 
-> 详细执行指南见 `references/phase-guide.md` - Phase 1.5
+> 详细执行指南见 `references/phase-guide-planning.md` - Phase 1.5
 
 ---
 
@@ -237,7 +237,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 **自审要点**: 无占位符、动机清晰、范围明确、影响完整。
 
-> 详细格式和模板见 `references/phase-guide.md` - Phase 2 和 `references/artifact-system.md`
+> 详细格式和模板见 `references/phase-guide-planning.md` - Phase 2 和 `references/artifact-system.md`
 
 ---
 
@@ -251,7 +251,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 **自审要点**: 场景可测试、MODIFIED标注原行为、REMOVED提供迁移方案、无实现细节。
 
-> 详细格式、示例和模板见 `references/phase-guide.md` - Phase 3 和 `references/artifact-system.md`
+> 详细格式、示例和模板见 `references/phase-guide-planning.md` - Phase 3 和 `references/artifact-system.md`
 
 ---
 
@@ -288,7 +288,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 无子agent时降级为顺序内联：主agent依次切换视角，产出格式不变。
 
-> 详细格式和模板见 `references/phase-guide.md` - Phase 4 和 `references/artifact-system.md`
+> 详细格式和模板见 `references/phase-guide-execution.md` - Phase 4 和 `references/artifact-system.md`
 > 三角色子agent提示见 `agents/architect.md`、`agents/perf-expert.md`、`agents/senior-dev.md`
 
 ---
@@ -307,7 +307,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **自审要点**: 所有组件有任务、依赖形成DAG、可并行已标注、TDD驱动。
 
-> 详细格式和模板见 `references/phase-guide.md` - Phase 5 和 `references/artifact-system.md`
+> 详细格式和模板见 `references/phase-guide-execution.md` - Phase 5 和 `references/artifact-system.md`
 
 ---
 
@@ -357,7 +357,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **关键原则**: 审查者必须**重新审查修复后的代码**，不信任"已修复"声明。
 
-> 详细执行指南和TDD流程见 `references/execution-guide.md` 和 `references/phase-guide.md` - Phase 6
+> 详细执行指南和TDD流程见 `references/execution-guide.md` 和 `references/phase-guide-execution.md` - Phase 6
 > Flow 模式详见 `references/flow-mode-guide.md`
 > 子agent提示模板见 `agents/implementer.md`
 > 审查方法和清单见 `references/review-verify.md`
@@ -381,7 +381,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **修复闭环**: 全局审查发现 Critical/Important 问题后：修复 → 重跑全量测试 → 重新全局审查（最多2轮，超过则升级给用户）。
 
-> 详细审查方法和清单见 `references/review-verify.md` 和 `references/phase-guide.md` - Phase 7
+> 详细审查方法和清单见 `references/review-verify.md` 和 `references/phase-guide-execution.md` - Phase 7
 
 ---
 
@@ -416,7 +416,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
    - **C级证据**：人工审查 + 合理性分析（环境完全阻塞）
 
 默认尝试A级，降级到B级时需说明原因，降级到C级需用户确认。
-> 详细验证方法和报告模板见 `references/review-verify.md` 和 `references/phase-guide.md` - Phase 8
+> 详细验证方法和报告模板见 `references/review-verify.md` 和 `references/phase-guide-execution.md` - Phase 8
 
 ---
 
@@ -428,7 +428,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **价值**: 历史追溯、模式复用、团队学习。
 
-> 详细归档流程见 `references/phase-guide.md` - Phase 9
+> 详细归档流程见 `references/phase-guide-closing.md` - Phase 9
 
 ---
 
@@ -455,7 +455,7 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 
 **完成后**: 更新 `.specpower.yaml` 中 status 为 `done`（选项1/2）或 `archived`（选项4）。
 
-> 详细执行步骤见 `references/phase-guide.md` - Phase 10
+> 详细执行步骤见 `references/phase-guide-closing.md` - Phase 10
 > 收尾脚本: `scripts/finish-change.sh`
 
 ---
@@ -604,7 +604,9 @@ Strict 模式下两者必须组合使用。
 ### 参考资源
 
 **完整指南**:
-- `references/phase-guide.md` — 各Phase详细执行步骤（新增）
+- `references/phase-guide-planning.md` — 规划阶段 (Phase 0~3) 详细执行步骤
+- `references/phase-guide-execution.md` — 执行阶段 (Phase 4~8) 详细执行步骤
+- `references/phase-guide-closing.md` — 收尾阶段 (Phase 9~10) 详细执行步骤
 - `references/artifact-system.md` — 工件类型、DAG模型、Delta规范、所有模板
 - `references/execution-guide.md` — TDD详细流程、子agent调度、系统调试
 - `references/review-verify.md` — 审查方法论、验证清单、问题分级

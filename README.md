@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -207,13 +207,14 @@ your-project/
 │   │       └── spec.md
 │   │
 │   └── archive/              # 已完成变更归档
-│       └── YYYY-MM-DD-<name>/
+│       └── <name>-<timestamp>/
 │
 ├── .worktrees/               # Git Worktree 隔离目录
 │   └── <change-name>-<timestamp>/
 │
 ├── scripts/
-│   └── init-change.sh        # 变更初始化脚本
+│   ├── init-change.sh        # 变更初始化脚本
+│   └── finish-change.sh      # 变更收尾脚本
 │
 └── SKILL.md                  # SpecPower 技能定义
 ```
@@ -236,11 +237,15 @@ SpecPower 强制执行测试驱动开发:
 
 **铁律**: 不允许在没有失败测试的情况下写生产代码。
 
-### 三层质量审查
+### 三层质量审查（逐任务内嵌）
 
-1. **自我审查** (30秒) — 检查 TODO、测试覆盖、安全漏洞
-2. **规范审查** (Strict) — 对比规范文档,确认需求完整实现
-3. **代码审查** (Standard+) — 架构、风格、错误处理、性能
+每完成一个任务立即通过审查门控,问题在传染到下游前被捕获:
+
+1. **自我审查** (30秒,所有模式) — 代码完整性、测试覆盖、安全基线
+2. **规范符合审查** (Strict,子agent) — 对比 specs/ 检查覆盖和正确性
+3. **代码质量审查** (Standard+,子agent) — 架构、风格、错误处理、性能
+
+审查发现问题 → 修复 → 重审（最多3轮闭环,超过升级用户）
 
 ### Git Worktree 隔离
 
@@ -262,10 +267,14 @@ SpecPower 强制执行测试驱动开发:
 
 ### 参考资料
 
+- **[references/phase-guide-planning.md](references/phase-guide-planning.md)** — 规划阶段 (Phase 0~3)
+- **[references/phase-guide-execution.md](references/phase-guide-execution.md)** — 执行阶段 (Phase 4~8)
+- **[references/phase-guide-closing.md](references/phase-guide-closing.md)** — 收尾阶段 (Phase 9~10)
+- **[references/flow-mode-guide.md](references/flow-mode-guide.md)** — Flow 模式完整指南与示例
 - **[references/artifact-system.md](references/artifact-system.md)** — 工件类型、DAG 模型、Delta 规范
 - **[references/execution-guide.md](references/execution-guide.md)** — TDD 详细流程、子 agent 调度
 - **[references/review-verify.md](references/review-verify.md)** — 审查方法论、验证清单
-- **[references/mindset.md](references/mindset.md)** — 反理性化与最佳实践
+- **[references/mindset.md](references/mindset.md)** — 反理性化、验证纪律与最佳实践
 
 ### 子 Agent 提示
 
