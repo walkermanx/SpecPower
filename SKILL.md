@@ -450,6 +450,7 @@ mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
 name: <change-name>-YYYYMMDDHHMMSS
 mode: standard          # flow | standard | strict
 created: 2026-04-08
+base_branch: feature/login  # 创建时所在的分支（收尾时合并回此分支）
 status: in-progress     # in-progress | review | done | archived
 # 状态流转: in-progress → done (合并) | in-progress → review (PR) → done (PR合并后手动更新) | in-progress → archived (废弃)
 ```
@@ -458,31 +459,35 @@ status: in-progress     # in-progress | review | done | archived
 
 **Strict 模式必需，Standard/Flow 可选**
 
-使用 worktree 提供物理隔离，确保关键变更不影响主分支：
+使用 worktree 提供物理隔离，确保关键变更不影响当前工作分支：
 
 ```
-主分支: main
+基准分支: <当前所在分支>（创建时自动检测并记录到 .specpower.yaml 的 base_branch 字段）
 工作分支: spec-power/<change-name>-YYYYMMDDHHMMSS
 Worktree: .worktrees/<change-name>-YYYYMMDDHHMMSS/
 ```
 
-**示例**:
+**示例（在 feature/login 分支上创建）**:
 ```
-变更: add-user-auth-20260408143025
-分支: spec-power/add-user-auth-20260408143025
-目录: .worktrees/add-user-auth-20260408143025/
+基准分支: feature/login（记录在 .specpower.yaml base_branch 中）
+工作分支: spec-power/add-user-auth-20260408143025
+Worktree目录: .worktrees/add-user-auth-20260408143025/
 ```
 
 **执行方式**:
 
 **Claude Code (自动)**:
 ```
-我会自动调用 EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS") 创建隔离环境
+1. 检测当前分支: git rev-parse --abbrev-ref HEAD → 记录为 base_branch
+2. 调用 EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS") 创建隔离环境
+   （EnterWorktree 基于当前 HEAD 创建新分支，因此会自动继承当前分支的代码）
+3. 将 base_branch 写入 .specpower.yaml
 ```
 
 **其他平台 (手动)**:
 ```bash
-git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS -b spec-power/<change-name>-YYYYMMDDHHMMSS
+# 显式指定基准分支，确保 worktree 从当前分支创建
+git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS -b spec-power/<change-name>-YYYYMMDDHHMMSS $(git rev-parse --abbrev-ref HEAD)
 cd .worktrees/<change-name>-YYYYMMDDHHMMSS
 ```
 

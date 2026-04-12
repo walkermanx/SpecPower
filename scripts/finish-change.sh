@@ -42,14 +42,24 @@ WORKTREE_PATH=".worktrees/$CHANGE_NAME"
 CHANGE_DIR="docs/spec-power/changes/$CHANGE_NAME"
 YAML_FILE="$CHANGE_DIR/.specpower.yaml"
 
-# 检测基准分支
+# 检测基准分支：优先从 .specpower.yaml 读取 base_branch，回退到 main/master
 detect_base_branch() {
+    # 优先从 .specpower.yaml 读取创建时记录的基准分支
+    if [ -f "$YAML_FILE" ]; then
+        local yaml_branch
+        yaml_branch=$(grep '^base_branch:' "$YAML_FILE" 2>/dev/null | sed 's/^base_branch:[[:space:]]*//' | sed 's/[[:space:]]*#.*//')
+        if [ -n "$yaml_branch" ] && git rev-parse --verify "$yaml_branch" >/dev/null 2>&1; then
+            echo "$yaml_branch"
+            return
+        fi
+    fi
+    # 回退：检测 main 或 master
     if git rev-parse --verify main >/dev/null 2>&1; then
         echo "main"
     elif git rev-parse --verify master >/dev/null 2>&1; then
         echo "master"
     else
-        echo -e "${RED}错误: 找不到 main 或 master 分支${NC}" >&2
+        echo -e "${RED}错误: 找不到基准分支（.specpower.yaml 中无 base_branch，也找不到 main/master）${NC}" >&2
         exit 1
     fi
 }

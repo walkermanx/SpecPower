@@ -77,14 +77,16 @@ if [ "$MODE" == "strict" ]; then
     mkdir -p "$BASE_DIR/specs"
 fi
 
-# 获取当前日期
+# 获取当前日期和当前分支
 CURRENT_DATE=$(date +%Y-%m-%d)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
 
 # 创建 .specpower.yaml
 cat > "$BASE_DIR/.specpower.yaml" <<EOF
 name: $FULL_NAME
 mode: $MODE              # flow | standard | strict
 created: $CURRENT_DATE
+base_branch: $CURRENT_BRANCH
 status: in-progress      # in-progress | review | done | archived
 artifacts:
   proposal: pending
@@ -348,7 +350,8 @@ if [ "$MODE" == "strict" ]; then
     echo "4. 在 specs/ 目录创建详细规范"
     echo ""
     echo -e "${YELLOW}注意: Strict 模式必须使用 Git Worktree 隔离${NC}"
-    echo "创建 worktree: git worktree add .worktrees/$FULL_NAME -b spec-power/$FULL_NAME"
+    echo "当前基准分支: $CURRENT_BRANCH"
+    echo "创建 worktree: git worktree add .worktrees/$FULL_NAME -b spec-power/$FULL_NAME $CURRENT_BRANCH"
 fi
 
 echo ""

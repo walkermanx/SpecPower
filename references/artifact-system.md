@@ -384,6 +384,7 @@ Task 3 ──► Task 4
 name: add-user-avatars-20260407143025
 mode: standard              # flow | standard | strict
 created: 2026-04-07
+base_branch: main           # 创建时所在的分支（收尾时合并回此分支）
 status: in-progress          # in-progress | review | done | archived
 # 状态流转: in-progress → done (合并) | in-progress → review (PR) → done (PR合并后手动更新) | in-progress → archived (废弃)
 artifacts:
@@ -402,6 +403,7 @@ artifacts:
 name: refactor-auth-20260407143025
 mode: strict
 created: 2026-04-07
+base_branch: feature/api-v2  # 创建时所在的分支（收尾时合并回此分支）
 status: in-progress
 artifacts:
   explore: done

@@ -63,12 +63,17 @@ npm test / cargo test / pytest / go test ./...
 
 ### Step 2: 确定基准分支
 
+优先从 `.specpower.yaml` 的 `base_branch` 字段读取创建时记录的基准分支，找不到时回退检测：
+
 ```bash
-# 检测基准分支
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+# 优先: 从 .specpower.yaml 读取
+grep '^base_branch:' docs/spec-power/changes/<change-name>/.specpower.yaml | awk '{print $2}'
+
+# 回退: 检测 main 或 master
+git rev-parse --verify main 2>/dev/null && echo "main" || echo "master"
 ```
 
-或直接确认："这个变更是从 main 分出来的，对吗？"
+向用户确认："这个变更的基准分支是 `<base_branch>`，对吗？"
 
 ### Step 3: 提供结构化选项
 
