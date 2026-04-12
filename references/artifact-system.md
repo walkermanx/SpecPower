@@ -379,16 +379,40 @@ Task 3 ──► Task 4
 
 ## .specpower.yaml 格式
 
+**Standard 模式示例**:
 ```yaml
-name: add-user-avatars
+name: add-user-avatars-20260407143025
 mode: standard              # flow | standard | strict
 created: 2026-04-07
 status: in-progress          # in-progress | review | done | archived
+# 状态流转: in-progress → done (合并) | in-progress → review (PR) → done (PR合并后手动更新) | in-progress → archived (废弃)
 artifacts:
+  clarify: done
   proposal: done
   design: done
   tasks: in-progress
   implementation: blocked
   review: blocked
   verification: blocked
+  finish: blocked
+```
+
+**Strict 模式示例**:
+```yaml
+name: refactor-auth-20260407143025
+mode: strict
+created: 2026-04-07
+status: in-progress
+artifacts:
+  explore: done
+  clarify: done
+  proposal: done
+  specs: done
+  design: done
+  tasks: in-progress
+  implementation: blocked
+  review: blocked
+  verification: blocked
+  archive: blocked
+  finish: blocked
 ```
