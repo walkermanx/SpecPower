@@ -164,10 +164,7 @@ SpecPower 采用**两阶段推荐**，避免在信息不足时过早决策：
 #### Standard 模式完整示例
 
 ```bash
-# 1. 初始化变更
-./scripts/init-change.sh add-user-avatars standard
-
-# 2. 告诉 AI 助手
+# 1. 告诉 AI 助手
 "使用 Standard 模式开发用户头像上传功能"
 
 # 助手会自动:
@@ -211,10 +208,6 @@ your-project/
 │
 ├── .worktrees/               # Git Worktree 隔离目录
 │   └── <change-name>-<timestamp>/
-│
-├── scripts/
-│   ├── init-change.sh        # 变更初始化脚本
-│   └── finish-change.sh      # 变更收尾脚本
 │
 └── SKILL.md                  # SpecPower 技能定义
 ```
@@ -284,24 +277,6 @@ SpecPower 强制执行测试驱动开发:
 - **[agents/architect.md](agents/architect.md)** — 架构师视角设计（Strict）
 - **[agents/perf-expert.md](agents/perf-expert.md)** — 性能专家视角设计（Strict）
 - **[agents/senior-dev.md](agents/senior-dev.md)** — 资深开发视角设计（Strict）
-
-### 工具脚本
-
-```bash
-# 初始化新变更(自动添加时间戳)
-./scripts/init-change.sh <change-name> [mode]
-
-# 示例
-./scripts/init-change.sh add-payment-gateway standard
-# 生成: docs/spec-power/changes/add-payment-gateway-20260409143025/
-
-# 收尾变更(整合分支、清理 worktree)
-./scripts/finish-change.sh <change-name-with-timestamp> [merge|pr|keep|discard]
-
-# 示例
-./scripts/finish-change.sh add-payment-gateway-20260409143025 merge
-# 合并到主分支并清理 worktree
-```
 
 ### 示例
 

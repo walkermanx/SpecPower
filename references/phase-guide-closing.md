@@ -202,12 +202,6 @@ git worktree remove .worktrees/<change-name>-YYYYMMDDHHMMSS
 git worktree remove --force .worktrees/<change-name>-YYYYMMDDHHMMSS
 ```
 
-**收尾脚本（可选）**:
-
-```bash
-./scripts/finish-change.sh <change-name>-YYYYMMDDHHMMSS [merge|pr|keep|discard]
-```
-
 ### 选项速查表
 
 | 选项 | Merge | Push | 保留 Worktree | 清理分支 | status |
@@ -265,6 +259,5 @@ git worktree remove --force .worktrees/<change-name>-YYYYMMDDHHMMSS
 
 ### 工件文件应该由谁创建？
 
-- **脚本创建结构**：使用 `scripts/init-change.sh` 创建目录和模板
-- **Claude填充内容**：所有占位符由Claude根据实际需求填充
+- **Claude创建**：根据模式和实际需求直接创建目录结构和工件内容
 - **人工参与**：在关键决策点（模式选择、方案对比）与用户确认

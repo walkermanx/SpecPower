@@ -422,7 +422,6 @@ Strict 模式在设计阶段引入三视角并行方案设计，从不同优化�
 **完成后**: 更新 `.specpower.yaml` 中 status 为 `done`（选项1/2）或 `archived`（选项4）。
 
 > ⚠️ 进入此阶段前，READ `references/phase-guide-closing.md` - Phase 10
-> 收尾脚本: `scripts/finish-change.sh`
 
 ---
 
@@ -554,23 +553,11 @@ Strict 模式下两者必须组合使用。
 
 ### 开始新变更
 
-使用初始化脚本（推荐）:
-```bash
-./scripts/init-change.sh <change-name> [mode]
-# 自动添加时间戳，生成完整目录结构
-```
-
-或手动：确定模式 → 写提案 → 按模式执行剩余阶段
+确定模式 → 创建变更目录和 `.specpower.yaml` → 写提案 → 按模式执行剩余阶段
 
 ### 收尾变更
 
-使用收尾脚本（推荐）:
-```bash
-./scripts/finish-change.sh <change-name-with-timestamp> [merge|pr|keep|discard]
-# 整合分支、清理 worktree、更新状态
-```
-
-或手动：按 Phase 10 步骤操作
+按 Phase 10 步骤操作：合并到主分支 / 推送并创建 PR / 保留当前状态 / 废弃变更
 
 ### 参考资源
 
@@ -591,6 +578,5 @@ Strict 模式下两者必须组合使用。
 - `agents/perf-expert.md` — 性能专家视角设计（Strict）
 - `agents/senior-dev.md` — 资深开发视角设计（Strict）
 
-**示例和工具**:
+**示例**:
 - `examples/add-user-avatars/` — Standard模式端到端示例（含Strict多角色方案对比示例）
-- `scripts/init-change.sh` — 自动创建变更目录结构
