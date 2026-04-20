@@ -9,6 +9,41 @@
 
 ---
 
+## [1.8.0] - 2026-04-20
+
+### 新增 ✨
+
+- **轻量注入原则**
+  - 子agent上下文注入添加 token 预算控制（实现者<3000/审查者<2000/设计者<4000）
+  - 上下文注入模板细化为4层，每层标注 token 目标
+  - 所有 agents/*.md 添加注入量目标和触发阈值标注
+
+- **审查阈值规则**
+  - diff < 20 行跳过子agent审查（自审即可）
+  - diff 20-100 行触发代码审查
+  - diff 100+ 行触发完整三层审查
+  - 安全/核心API变更例外：无论大小必须审查
+
+### 重构 🔨
+
+- **SKILL.md 精简为路由层**
+  - 从 582 行精简至 206 行（减少 65%）
+  - 只保留模式选择逻辑 + Phase 路由表 + 快速参考索引
+  - 详细方法论通过 READ 指令按需加载 references
+  - 预计入口 token 消耗减少 ~65%
+
+- **references 内容补全与去重**
+  - phase-guide-execution.md 新增"阶段回退协议"
+  - phase-guide-closing.md 新增"变更目录管理"和"平台适配表"
+  - 消除 SKILL.md 与 references 之间的内容重复
+  - 确保每个 READ 引用均有对应目标章节
+
+### 文档 📝
+
+- 新增 `docs/analysis-openspec-superpowers-fusion.md` — OpenSpec + Superpowers 融合分析
+
+---
+
 ## [1.7.1] - 2026-04-15
 
 ### 修复 🐛
