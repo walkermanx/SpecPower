@@ -3,7 +3,7 @@
 当 dispatch 子agent 进行规范符合审查时，使用此模板。
 
 **注入量目标: < 2000 tokens**。只注入代码 diff + 对应的 spec 场景片段。
-**触发阈值**: diff >= 100 行（或 Strict 模式下所有变更）。
+**触发阈值**: Standard/Strict diff >= 100 行触发。强制例外（安全/SQL/并发/金额/公开API）无论大小必触发。Strict 模式下建议对所有逻辑变更触发。
 
 ---
 
