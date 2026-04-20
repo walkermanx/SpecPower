@@ -227,13 +227,86 @@ git worktree remove --force .worktrees/<change-name>-YYYYMMDDHHMMSS
 
 ---
 
-## 平台适配总结
+## 变更目录管理
 
-详见 SKILL.md 的"平台适配"章节。关键差异：
-- Claude Code 支持子agent并行和自动 Worktree 管理
-- 其他平台使用内联审查、手动 Worktree 操作、顺序执行
+### 创建变更
 
-各阶段的具体平台适配说明见上文对应章节。
+**命名格式**: `<change-name>-YYYYMMDDHHMMSS`
+
+变更目录名称包含时间戳，避免命名冲突并自动记录创建时间。
+
+**示例**:
+- `add-user-auth-20260408143025` — 2026年4月8日 14:30:25 创建
+- `refactor-payment-20260410091530` — 2026年4月10日 09:15:30 创建
+
+```bash
+mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
+```
+
+### 元数据文件
+
+`docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/.specpower.yaml`:
+
+```yaml
+name: <change-name>-YYYYMMDDHHMMSS
+mode: standard          # flow | standard | strict
+created: 2026-04-08
+base_branch: feature/login  # 创建时所在的分支（收尾时合并回此分支）
+status: in-progress     # in-progress | review | done | archived
+# 状态流转: in-progress → done (合并) | in-progress → review (PR) → done | in-progress → archived (废弃)
+```
+
+### Git Worktree 隔离
+
+**Strict 模式必需，Standard/Flow 可选**
+
+```
+基准分支: <当前所在分支>（创建时自动检测并记录到 .specpower.yaml 的 base_branch 字段）
+工作分支: spec-power/<change-name>-YYYYMMDDHHMMSS
+Worktree: .worktrees/<change-name>-YYYYMMDDHHMMSS/
+```
+
+**Claude Code (自动)**:
+```
+1. 检测当前分支: git rev-parse --abbrev-ref HEAD → 记录为 base_branch
+2. 调用 EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS") 创建隔离环境
+3. 将 base_branch 写入 .specpower.yaml
+```
+
+**其他平台 (手动)**:
+```bash
+git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS -b spec-power/<change-name>-YYYYMMDDHHMMSS $(git rev-parse --abbrev-ref HEAD)
+cd .worktrees/<change-name>-YYYYMMDDHHMMSS
+```
+
+**双重隔离**：
+- 变更目录: 逻辑隔离（工件组织）`docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/`
+- Worktree: 物理隔离（代码分支）`.worktrees/<change-name>-YYYYMMDDHHMMSS/`
+
+Strict 模式下两者必须组合使用。
+
+---
+
+## 平台适配
+
+| 能力 | Claude Code | Cursor | Copilot/其他 |
+|------|------------|--------|-------------|
+| 子agent并行 | Yes | No | No |
+| 多角色设计 (Strict) | 3子agent并行 | 顺序内联 | 顺序内联 |
+| Git worktree (Strict) | 自动 | 手动必需 | 手动必需 |
+| Git worktree (Standard/Flow) | 自动 | 手动可选 | 手动可选 |
+| Worktree 收尾清理 | ExitWorktree | 手动/脚本 | 手动/脚本 |
+| 工件系统 | Yes | Yes | Yes |
+| TDD流程 | Yes | Yes | Yes |
+| 逐任务审查 | 子agent闭环 | 内联自审 | 内联自审 |
+
+### 无子agent时的降级策略
+
+- 多角色设计改为顺序内联（主agent依次切换视角）
+- 逐任务审查改为清单驱动的自审（审查维度不变，只是执行方式不同）
+- 并行执行改为顺序执行
+- 修复→重审闭环改为修复→自审验证
+- 所有工件和质量规则不变
 
 ---
 
