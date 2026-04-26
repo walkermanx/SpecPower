@@ -17,8 +17,14 @@
 ### 归档步骤
 
 1. **合并Delta规范**（如有）
-   - 将specs/中的Delta规范合并到主规范 `docs/spec-power/specs/`
-   - 应用ADDED/MODIFIED/REMOVED操作
+   - 将 specs/ 中的 Delta 规范合并到主规范 `docs/spec-power/specs/`
+   - 应用 ADDED/MODIFIED/REMOVED 操作
+
+   **主规范不存在时的处理**（逐模块判断）:
+   - 有 Phase 1 局部基线（带 `type: baseline` 元信息）→ 以基线为起点，应用 Delta 操作
+   - 无基线且全是 ADDED → 直接用 ADDED 内容创建主规范
+   - 无基线但有 MODIFIED/REMOVED → 异常状态，回退到基于 Delta 中"(之前: ...)"描述重建后合并
+   - 合并完成后，移除基线文件的 frontmatter 元信息（主规范不需要此标注）
 
 2. **移动变更目录**
    ```bash

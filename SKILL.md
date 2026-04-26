@@ -83,7 +83,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 ### Phase 1: 探索 (Strict only)
 
-理解全局上下文：项目扫描、现有模式、影响范围、约束发现。产出体现在提案 Context 部分。
+理解全局上下文：项目扫描、现有模式、影响范围、约束发现。棕地项目涉及 MODIFIED/REMOVED 时按需生成局部基线规范。产出体现在提案 Context 部分。
 
 > READ `references/phase-guide-planning.md` - Phase 1
 

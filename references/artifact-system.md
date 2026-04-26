@@ -50,6 +50,7 @@ Delta 规范是 Strict 模式的核心概念，描述的是行为**变更**而�
 2. **冲突避免** — 多个变更可触及同一 spec 而无冲突
 3. **审查高效** — 只看改动，无需心理 diff
 4. **棕地友好** — 对已有系统的修改是一级概念
+5. **基线按需生成** — 棕地项目首次使用时，仅为涉及 MODIFIED/REMOVED 的模块生成局部基线，不需要为整个系统写规范
 
 ### Delta 格式详解
 
@@ -141,6 +142,11 @@ Delta 规范是 Strict 模式的核心概念，描述的是行为**变更**而�
 1. ADDED → 追加到主规范相应 section
 2. MODIFIED → 替换主规范中的对应需求块
 3. REMOVED → 从主规范中删除对应需求
+
+**棕地首次合并**（主规范 `docs/spec-power/specs/<domain>/spec.md` 不存在时）:
+- 有 Phase 1 生成的局部基线 → 以基线为起点，应用 Delta 操作，生成主规范
+- 无基线且全是 ADDED → 直接用 ADDED 内容创建主规范
+- 合并完成后移除基线文件的 `type: baseline` frontmatter 元信息
 
 ---
 
@@ -418,3 +424,51 @@ artifacts:
   archive: blocked
   finish: blocked
 ```
+
+---
+
+## 基线规范格式（棕地项目局部基线）
+
+当棕地项目首次使用 Strict 模式且涉及 MODIFIED/REMOVED 时，Phase 1 探索阶段按需生成局部基线。基线使用标准 Requirement + Scenario 格式（非 Delta），描述"当前系统的行为是什么"。
+
+### 基线与 Delta 的区别
+
+| 维度 | 基线规范 | Delta 规范 |
+|------|---------|-----------|
+| 描述内容 | 当前行为（是什么） | 行为变更（改什么） |
+| 格式 | 标准 Requirement + Scenario | ADDED/MODIFIED/REMOVED 操作 |
+| 存放位置 | `docs/spec-power/specs/<domain>/spec.md` | `docs/spec-power/changes/<name>/specs/<domain>/spec.md` |
+| 覆盖范围 | 仅本次变更涉及的 Requirement | 本次变更的所有行为变更 |
+| 生命周期 | 归档后成为主规范的一部分 | 归档后移入 archive |
+
+### 基线模板
+
+```markdown
+---
+type: baseline
+generated: <YYYY-MM-DD>
+scope: partial
+change: <change-name>-YYYYMMDDHHMMSS
+---
+
+# <模块名称> 现有行为规范
+
+> 局部基线，仅覆盖变更 `<change-name>` 涉及的需求。基于 Phase 1 探索阶段的代码阅读生成。
+
+## Requirements
+
+### Requirement: <需求名>
+<当前行为描述，使用 RFC 2119 关键词>
+
+#### Scenario: <场景名>
+- **GIVEN** <前置条件>
+- **WHEN** <触发动作>
+- **THEN** <预期结果>
+- **AND** <额外条件或结果>
+```
+
+### 注意事项
+
+- 基线仅覆盖本次变更涉及的 Requirement，不需要完整描述整个模块
+- `scope: partial` 标明这是局部基线，后续变更可逐步补充
+- 归档合并后，基线内容被 Delta 操作更新，frontmatter 元信息被移除，成为正式主规范的一部分
