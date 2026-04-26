@@ -179,7 +179,7 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
       对本次变更涉及的每个模块（domain），独立判断：
       - 本模块全是 ADDED（新增能力）→ **不需要基线**，跳过
       - 本模块涉及 MODIFIED 或 REMOVED → 检查 `docs/spec-power/specs/<domain>/spec.md`
-        - 已存在且覆盖相关 Requirement → **不需要基线**，已有参照
+        - 已存在且覆盖相关 Requirement → **检查新鲜度**（见下方 Step 5d）
         - 不存在或未覆盖 → **需要生成局部基线**
 
    c. **生成局部基线规范**（仅对需要基线的模块）
@@ -189,7 +189,31 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
       - 使用标准 Requirement + Scenario 格式（非 Delta），记录"当前系统的行为是什么"
       - 添加 frontmatter 元信息标注为局部基线（格式见 `artifact-system.md`）
 
-   > **注意**: 基线检测是逐模块的。即使主规范目录已存在（之前的 Strict 变更创建了其他模块的主规范），只要本次涉及的具体模块没有主规范，仍会触发基线生成。一旦主规范通过归档积累起来，后续变更自然有基线可参照。
+   d. **主规范新鲜度验证**（仅当 Step 5b 判定"已存在且覆盖"时）
+
+      主规范可能因 Standard/Flow 变更或体系外开发而过时。通过 git 检测代码侧变更：
+
+      ```bash
+      # 获取主规范最后更新的 commit
+      SPEC_COMMIT=$(git log -1 --format="%H" -- docs/spec-power/specs/<domain>/spec.md)
+      # 查看该 commit 之后，模块相关代码是否有变更
+      git log --oneline $SPEC_COMMIT..HEAD -- <module-code-paths>
+      ```
+
+      **如果无代码变更** → 主规范是最新的，**不需要基线**，直接用作参照。
+
+      **如果存在代码变更**，按信息丰富度分级处理：
+      1. 查找 `docs/spec-power/changes/` 下相关变更目录中的 `behavior-changes.md` → 读取摘要，定向核实主规范对应 Requirement
+      2. 查找相关变更目录中的 `proposal.md` → 从变更范围推断行为影响
+      3. 仅有 git log → 阅读代码差异，确认主规范中涉及的 Requirement 是否仍然准确
+
+      **处理方式**：
+      - 能确认变更内容 → 直接更新主规范对应 Requirement（保持格式，仅修正行为描述）
+      - 无法确认 → 在主规范对应 Requirement 旁标注 `<!-- unverified since <commit-hash> -->`，提醒 Phase 3 写 MODIFIED 时需特别核实
+
+      > `<module-code-paths>` 指模块对应的代码目录。通常可从主规范的上下文或项目结构推断（如 `src/auth/`、`lib/user-api/`）。如果模块与代码目录的映射不明确，扩大范围扫描或查阅项目文档。
+
+   > **注意**: 基线检测是逐模块的。即使主规范目录已存在（之前的 Strict 变更创建了其他模块的主规范），只要本次涉及的具体模块没有主规范，仍会触发基线生成。一旦主规范通过归档积累起来，后续变更自然有基线可参照。新鲜度验证确保已有的主规范仍然反映代码的当前行为。
 
 ### 产出形式
 
