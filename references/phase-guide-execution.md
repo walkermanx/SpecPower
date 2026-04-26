@@ -309,7 +309,7 @@ Task 3 ──► Task 4
 | 模式 | 执行方式 | 审查方式 |
 |------|---------|---------|
 | **Flow** | 直接 TDD 执行 | 自我审查（30秒清单）即可，无需子agent审查 |
-| **Standard** | 逐任务 TDD + 逐任务审查 | 自我审查 + 代码质量审查（子agent） |
+| **Standard** | 逐任务 TDD + 逐任务审查 | 自我审查 + 代码质量审查（子agent）+ 规范符合审查（触发时，基于 behavior-changes.md） |
 | **Strict** | 逐任务 TDD + 逐任务审查 | 自我审查 + 规范符合审查 + 代码质量审查（子agent） |
 
 Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 Standard+ 模式。
@@ -337,8 +337,8 @@ Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 St
 │  Step 2: 自我审查（30秒）                                          │
 │       代码完整性 + 测试覆盖 + 安全基线                                │
 │       ↓                                                          │
-│  Step 3: 规范符合审查（Strict，子agent）                              │
-│       对比 specs/ 检查覆盖和正确性                                    │
+│  Step 3: 规范符合审查（Standard/Strict，子agent，触发时）                │
+│       Strict: 对比 specs/ | Standard: 对比 behavior-changes.md       │
 │       ↓                                                          │
 │  Step 4: 代码质量审查（Standard+，子agent）                           │
 │       架构、质量、安全、可维护性                                       │
@@ -386,19 +386,27 @@ Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 St
 
 详细清单见 `review-verify.md`
 
-#### 规范符合审查（仅Strict，子agent）
+#### 规范符合审查（Standard/Strict，子agent）
 
-Dispatch `spec-reviewer` 子agent：
-- 对比specs/中的每个Requirement和Scenario
+Dispatch `spec-reviewer` 子agent，按模式使用不同审查对象：
+
+**Strict 模式**（必选）:
+- 对比 `specs/` 中的每个 Requirement 和 Scenario
 - 检查实现是否完整覆盖所有规范要求
 - 标记偏差——是改进还是遗漏
 - **不信任实现者的报告** — 必须独立阅读代码验证
+
+**Standard 模式**（触发时）:
+- 审查 `behavior-changes.md` 是否完整记录了所有行为变更
+- 审查 `proposal.md` 的成功标准是否全部达成
+- 强制例外场景（安全/SQL/并发/金额/公开API）执行专项检查
+- 触发条件同 Strict：diff >= 100 行或强制例外
 
 详见 `agents/spec-reviewer.md` 和 `review-verify.md`
 
 #### 代码质量审查（Standard+，子agent）
 
-**前提条件**: 仅在规范符合审查通过后才执行（Strict 模式）。先确认做的是对的东西，再确认做的东西是好的。如果 spec 审查未通过就开始 code 审查，reviewer 可能审查即将被修改的代码，浪费资源。
+**前提条件**: 仅在规范符合审查通过后才执行（如有规范符合审查）。先确认做的是对的东西，再确认做的东西是好的。如果 spec 审查未通过就开始 code 审查，reviewer 可能审查即将被修改的代码，浪费资源。
 
 Dispatch `code-reviewer` 子agent：
 - 架构设计合理性
