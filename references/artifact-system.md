@@ -17,6 +17,7 @@
 | implementation | 源代码（含逐任务审查） | tasks(Standard+) 或 proposal(Flow) | 所有 |
 | review | (全局审查记录) | implementation | Standard+ |
 | verification | (验证报告) | review(Standard+) 或 implementation(Flow) | 所有 |
+| behavior-changes | `behavior-changes.md` | verification | Standard+ |
 | archive | `archive/` 目录 | verification | Strict |
 | finish | (分支整合) | verification + archive(如有) | 所有 |
 
@@ -472,3 +473,33 @@ change: <change-name>-YYYYMMDDHHMMSS
 - 基线仅覆盖本次变更涉及的 Requirement，不需要完整描述整个模块
 - `scope: partial` 标明这是局部基线，后续变更可逐步补充
 - 归档合并后，基线内容被 Delta 操作更新，frontmatter 元信息被移除，成为正式主规范的一部分
+
+---
+
+## 行为变更摘要格式（Standard+ 模式）
+
+Standard+ 模式验证通过后，如果本次变更修改了已有行为（而非纯新增），在变更目录生成 `behavior-changes.md`。此文件为后续 Strict 变更提供行为漂移的信号源，也作为 Standard 模式 spec-reviewer 的审查输入。
+
+### behavior-changes.md 模板
+
+```markdown
+## 行为变更摘要
+
+> 变更: <change-name>
+> 日期: <YYYY-MM-DD>
+
+### 模块: <domain>
+- <行为变更描述：什么从什么变成了什么>
+- <行为变更描述>
+
+### 模块: <domain>
+- <行为变更描述>
+```
+
+### 撰写要求
+
+- 自然语言描述，无需 Scenario 格式或 RFC 2119 关键词
+- 聚焦"之前→之后"的行为差异，不描述实现细节
+- 每条变更一行，格式为"<对象> 从 <旧行为> 改为 <新行为>"或等价的自然表述
+- 仅记录已有行为的修改，纯新增能力不需要记录
+- 耗时应 < 2 分钟
