@@ -36,6 +36,18 @@
    - archive中保留完整的proposal、design、tasks、specs
    - 这些文档记录了决策的"为什么"
 
+4. **提交归档结果**
+
+   归档操作完成后，MUST 立即提交，确保归档内容持久化到 worktree 分支：
+
+   ```bash
+   git add docs/spec-power/archive/<change-name>-YYYYMMDDHHMMSS/
+   git add docs/spec-power/specs/   # 如果合并了Delta规范
+   git commit -m "docs(spec-power): archive <change-name>"
+   ```
+
+   **不提交归档 = 归档不存在。** 未提交的文件在 Phase 10 清理 worktree 时会被永久删除（`ExitWorktree(action="remove")` 或 `git worktree remove` 不保留 untracked 文件）。只有提交到分支上的归档，才能通过后续的 merge 或 push 保留到目标分支。
+
 ### 归档价值
 
 - 历史追溯：理解"为什么当时这样设计"

@@ -347,7 +347,13 @@ expect(result).toBeDefined();
 
 ## Git 提交规范
 
-每完成一个 task 提交一次。提交信息格式：
+**铁律: 每完成一个 task 必须立即提交。** 这是与 TDD 同等级别的不可跳过的规则。
+- 控制器 MUST 在每个任务的全部审查通过后执行 git commit
+- 控制器 MUST 验证 commit 存在后才标记任务完成
+- 子 agent 不负责 commit，只负责报告创建/修改的文件列表
+- 不允许将多个任务的变更累积为一个 commit
+
+提交信息格式：
 
 ```
 <type>(<scope>): <简短描述>
