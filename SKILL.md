@@ -1,6 +1,6 @@
 ---
 name: spec-power
-version: "1.8.1"
+version: "1.8.2"
 description: "SpecPower - 规范驱动的开发工作流。触发关键词:'开发新功能'、'重构模块'、'复杂bug'、'架构设计'、'写计划'、'分步做'、'规范化开发'、'拆解任务'、'团队协作'、'核心系统'、'多模块'、'TDD'。自动推荐Flow(快速)/Standard(日常)/Strict(关键)三档模式。Standard+模式含需求澄清阶段(逐个澄清、方向速览、范围确认),强制测试驱动开发,三层质量审查(自审/规范审查/代码审查),支持子agent并行执行。Strict模式Phase 4采用多角色方案对比(架构师/性能专家/资深开发三视角)。适用于所有需要结构化规划的开发工作,不适用于简单查询或单行代码修改。"
 ---
 
@@ -81,6 +81,12 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 每个 Phase 进入前按指示 READ 对应参考文件。
 
+### Worktree 隔离 (Strict 必需, Standard/Flow 可选)
+
+模式确认后、进入实际工作 Phase 前创建隔离环境。确保 HEAD 指向期望的基准分支后再调用 EnterWorktree。
+
+> READ `references/phase-guide-planning.md` - Worktree 隔离
+
 ### Phase 1: 探索 (Strict only)
 
 理解全局上下文：项目扫描、现有模式、影响范围、约束发现。棕地项目涉及 MODIFIED/REMOVED 时按需生成局部基线规范。产出体现在提案 Context 部分。
@@ -154,7 +160,7 @@ TDD 铁律（RED→GREEN→REFACTOR）+ 逐任务审查（自审→spec审→cod
 
 进入 Strict 模式后，必须通过以下检查点：
 
-- ✅ Worktree 隔离 (Phase 0)
+- ✅ Worktree 隔离 (模式确认后)
 - ✅ 探索阶段 (Phase 1)
 - ✅ 规范阶段 (Phase 3): Delta 规范已生成
 - ✅ 设计阶段 (Phase 4): 技术方案确定

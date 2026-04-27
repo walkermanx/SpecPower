@@ -139,6 +139,101 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
 
 ---
 
+## Worktree 隔离 (模式确认后)
+
+### 目标
+
+在进入任何实际工作 Phase 之前，创建 Git Worktree 物理隔离环境。**确保工作分支基于正确的基准分支**。
+
+### 适用条件
+
+- **Strict 模式**: 必需
+- **Standard/Flow 模式**: 可选（用户要求或推荐时使用）
+- **前置条件**: Phase 0 模式确认完成
+
+### 执行步骤
+
+#### Step 1: 确认基准分支
+
+在调用 EnterWorktree **之前**，确认当前 HEAD 指向用户期望的基准分支：
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+**向用户确认**："当前在 `<branch-name>` 分支上，将基于此分支创建 worktree 隔离环境。确认？"
+
+如果用户期望基于其他分支：
+
+```bash
+git checkout <expected-base-branch>
+git rev-parse --abbrev-ref HEAD  # 再次确认
+```
+
+将确认后的分支记录为 `base_branch`。
+
+> **关键约束**: 确认基准分支后，在调用 EnterWorktree 之前，**不得执行任何可能改变 HEAD 的 git 命令**（如 checkout、switch、merge、rebase 等）。EnterWorktree 始终基于当前 HEAD 创建新分支。
+
+#### Step 2: 创建变更目录
+
+```bash
+mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
+```
+
+#### Step 3: 创建 Worktree
+
+**Claude Code (自动)**:
+
+```
+EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS")
+```
+
+**其他平台 (手动)**:
+
+```bash
+git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS \
+  -b spec-power/<change-name>-YYYYMMDDHHMMSS \
+  <base_branch>
+cd .worktrees/<change-name>-YYYYMMDDHHMMSS
+```
+
+#### Step 4: 验证分支基准
+
+Worktree 创建后，**立即验证**新分支的基准是否正确：
+
+```bash
+# 新分支 HEAD 应与 base_branch 的 HEAD 指向同一 commit
+git log --oneline -1 HEAD
+git log --oneline -1 <base_branch>
+```
+
+如果两者 commit 不一致，说明创建时 HEAD 已偏移：
+1. 退出并删除 worktree（`ExitWorktree(action="remove")`）
+2. 回到原始目录，确认 HEAD 指向正确分支
+3. 重新执行 Step 1-4
+
+#### Step 5: 写入元数据
+
+创建 `docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/.specpower.yaml`：
+
+```yaml
+name: <change-name>-YYYYMMDDHHMMSS
+mode: strict          # flow | standard | strict
+created: YYYY-MM-DD
+base_branch: <base_branch>   # Step 1 中确认的基准分支
+status: in-progress
+```
+
+### 常见错误
+
+| 错误 | 原因 | 预防 |
+|------|------|------|
+| 新分支基于 main 而非 dev | 调用 EnterWorktree 前 HEAD 不在 dev 上 | Step 1 强制确认 + Step 4 验证 |
+| base_branch 记录与实际不一致 | 仅记录分支名未验证 commit | Step 4 对比 commit hash |
+| 多次创建 worktree 分支冲突 | 时间戳重复 | 名称中包含 YYYYMMDDHHMMSS 精确到秒 |
+
+---
+
 ## Phase 1: 探索 (仅Strict模式)
 
 ### 目标

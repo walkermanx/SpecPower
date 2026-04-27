@@ -9,6 +9,40 @@
 
 ---
 
+## [1.8.2] - 2026-04-27
+
+### 新增 ✨
+
+- **棕地项目按需局部基线规范生成**
+  - Strict 模式 Phase 1 新增棕地基线检测步骤（Step 5）
+  - 当已有代码库首次使用时，逐模块判断是否涉及 MODIFIED/REMOVED
+  - 仅为需要的模块按需生成局部基线规范（`docs/spec-power/specs/<domain>/spec.md`）
+  - 基线使用标准 Requirement + Scenario 格式，带 `type: baseline` frontmatter 标注
+  - 解决 Delta Spec 缺少行为基线导致 MODIFIED/REMOVED 的"之前"描述无参照的问题
+
+- **规范审查增强棕地基线验证**
+  - spec-reviewer agent 新增"基线规范"输入节和 "MODIFIED/REMOVED 基线验证"检查项
+  - 校验 MODIFIED/REMOVED 的"之前"描述是否与基线/主规范一致
+
+- **Phase 3 棕地来源优先级提示**
+  - MODIFIED/REMOVED 的 "(之前: ...)" 内容来源优先级：主规范 > Phase 1 局部基线 > 代码推断（需标注）
+  - Delta 规范自检清单新增棕地场景检查项
+
+- **归档阶段棕地首次合并支持**
+  - Phase 9 归档新增主规范不存在时的处理逻辑（有基线以基线为起点、无基线全 ADDED 直接创建）
+  - 合并完成后自动移除基线 frontmatter 元信息
+
+### 修复 🐛
+
+- **Worktree 基准分支确认与验证机制**
+  - Worktree 创建步骤从 closing.md 参考章节迁移至 planning.md，作为独立的 Phase 路由入口
+  - 新增 Step 1 基准分支确认（向用户确认当前 HEAD 是否为期望分支）
+  - 新增 Step 4 创建后验证（对比 commit hash 确保分支基准正确）
+  - 添加关键约束：确认分支后到调用 EnterWorktree 之间禁止改变 HEAD 的 git 命令
+  - 修正 SKILL.md 检查清单标注从 "Phase 0" 改为 "模式确认后"
+
+---
+
 ## [1.8.1] - 2026-04-21
 
 ### 新增 ✨

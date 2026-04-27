@@ -267,23 +267,13 @@ status: in-progress     # in-progress | review | done | archived
 **Strict 模式必需，Standard/Flow 可选**
 
 ```
-基准分支: <当前所在分支>（创建时自动检测并记录到 .specpower.yaml 的 base_branch 字段）
+基准分支: <创建时确认的分支>（记录在 .specpower.yaml 的 base_branch 字段）
 工作分支: spec-power/<change-name>-YYYYMMDDHHMMSS
 Worktree: .worktrees/<change-name>-YYYYMMDDHHMMSS/
 ```
 
-**Claude Code (自动)**:
-```
-1. 检测当前分支: git rev-parse --abbrev-ref HEAD → 记录为 base_branch
-2. 调用 EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS") 创建隔离环境
-3. 将 base_branch 写入 .specpower.yaml
-```
-
-**其他平台 (手动)**:
-```bash
-git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS -b spec-power/<change-name>-YYYYMMDDHHMMSS $(git rev-parse --abbrev-ref HEAD)
-cd .worktrees/<change-name>-YYYYMMDDHHMMSS
-```
+> **创建步骤**: 见 `phase-guide-planning.md` - Worktree 隔离（含基准分支确认和验证）
+> **清理步骤**: 见本文档 Phase 10
 
 **双重隔离**：
 - 变更目录: 逻辑隔离（工件组织）`docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/`
