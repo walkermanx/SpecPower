@@ -155,7 +155,7 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
 
 #### Step 1: 确认基准分支
 
-在调用 EnterWorktree **之前**，确认当前 HEAD 指向用户期望的基准分支：
+确认用户期望的基准分支：
 
 ```bash
 git rev-parse --abbrev-ref HEAD
@@ -163,16 +163,9 @@ git rev-parse --abbrev-ref HEAD
 
 **向用户确认**："当前在 `<branch-name>` 分支上，将基于此分支创建 worktree 隔离环境。确认？"
 
-如果用户期望基于其他分支：
-
-```bash
-git checkout <expected-base-branch>
-git rev-parse --abbrev-ref HEAD  # 再次确认
-```
+如果用户期望基于其他分支，记录用户指定的分支名即可（无需 checkout）。
 
 将确认后的分支记录为 `base_branch`。
-
-> **关键约束**: 确认基准分支后，在调用 EnterWorktree 之前，**不得执行任何可能改变 HEAD 的 git 命令**（如 checkout、switch、merge、rebase 等）。EnterWorktree 始终基于当前 HEAD 创建新分支。
 
 #### Step 2: 创建变更目录
 
@@ -182,13 +175,23 @@ mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
 
 #### Step 3: 创建 Worktree
 
-**Claude Code (自动)**:
+**Claude Code（先创建再进入）**:
+
+```bash
+# 手动创建 worktree，显式指定 base_branch 确保基准精确
+git worktree add .claude/worktrees/<change-name>-YYYYMMDDHHMMSS \
+  -b spec-power/<change-name>-YYYYMMDDHHMMSS \
+  <base_branch>
+```
 
 ```
-EnterWorktree(name="<change-name>-YYYYMMDDHHMMSS")
+# 进入已创建的 worktree，获得完整的会话状态管理（CWD 切换、CLAUDE.md 重载、退出时自动清理提示）
+EnterWorktree(path=".claude/worktrees/<change-name>-YYYYMMDDHHMMSS")
 ```
 
-**其他平台 (手动)**:
+> **为什么分两步？** `EnterWorktree(name=...)` 只能基于当前 HEAD 创建分支，不支持指定 base_branch，在 HEAD 与期望基准不一致时会导致分支基于错误的 commit。先用 `git worktree add` 显式指定 base_branch，再用 `EnterWorktree(path=...)` 进入，兼顾基准精确性和会话状态管理。
+
+**其他平台（手动）**:
 
 ```bash
 git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS \
@@ -207,10 +210,10 @@ git log --oneline -1 HEAD
 git log --oneline -1 <base_branch>
 ```
 
-如果两者 commit 不一致，说明创建时 HEAD 已偏移：
-1. 退出并删除 worktree（`ExitWorktree(action="remove")`）
-2. 回到原始目录，确认 HEAD 指向正确分支
-3. 重新执行 Step 1-4
+如果两者 commit 不一致：
+1. 退出并删除 worktree（Claude Code: `ExitWorktree(action="remove")`）
+2. 检查 `<base_branch>` 是否拼写正确、是否已 fetch 最新
+3. 重新执行 Step 3-4
 
 #### Step 5: 写入元数据
 
@@ -228,7 +231,7 @@ status: in-progress
 
 | 错误 | 原因 | 预防 |
 |------|------|------|
-| 新分支基于 main 而非 dev | 调用 EnterWorktree 前 HEAD 不在 dev 上 | Step 1 强制确认 + Step 4 验证 |
+| 新分支基于错误 commit | `git worktree add` 的 base_branch 参数拼写错误或未 fetch | Step 4 验证 commit hash |
 | base_branch 记录与实际不一致 | 仅记录分支名未验证 commit | Step 4 对比 commit hash |
 | 多次创建 worktree 分支冲突 | 时间戳重复 | 名称中包含 YYYYMMDDHHMMSS 精确到秒 |
 

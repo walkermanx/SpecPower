@@ -83,7 +83,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 ### Worktree 隔离 (Strict 必需, Standard/Flow 可选)
 
-模式确认后、进入实际工作 Phase 前创建隔离环境。确保 HEAD 指向期望的基准分支后再调用 EnterWorktree。
+模式确认后、进入实际工作 Phase 前创建隔离环境。Claude Code 下先用 `git worktree add ... <base_branch>` 显式指定基准分支创建 worktree，再用 `EnterWorktree(path=...)` 进入以获得会话状态管理。
 
 > READ `references/phase-guide-planning.md` - Worktree 隔离
 
