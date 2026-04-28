@@ -264,7 +264,9 @@ SpecPower 强制执行测试驱动开发:
 - **[references/phase-guide-execution.md](references/phase-guide-execution.md)** — 执行阶段 (Phase 4~8)
 - **[references/phase-guide-closing.md](references/phase-guide-closing.md)** — 收尾阶段 (Phase 9~10)
 - **[references/flow-mode-guide.md](references/flow-mode-guide.md)** — Flow 模式完整指南与示例
-- **[references/artifact-system.md](references/artifact-system.md)** — 工件类型、DAG 模型、Delta 规范
+- **[references/artifact-system.md](references/artifact-system.md)** — 工件类型、DAG 模型、`.specpower.yaml` 格式
+- **[references/templates.md](references/templates.md)** — proposal / design / 多角色 / tasks / behavior-changes 模板
+- **[references/artifact-delta-specs.md](references/artifact-delta-specs.md)** — Delta 规范 + RFC 2119 + 棕地基线(Strict 专用)
 - **[references/execution-guide.md](references/execution-guide.md)** — TDD 详细流程、子 agent 调度
 - **[references/review-verify.md](references/review-verify.md)** — 审查方法论、验证清单
 - **[references/mindset.md](references/mindset.md)** — 反理性化、验证纪律与最佳实践

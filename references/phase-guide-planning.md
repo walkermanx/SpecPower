@@ -285,7 +285,7 @@ status: in-progress
       - 生成 `docs/spec-power/specs/<domain>/spec.md` 作为基线
       - 只覆盖本次变更涉及的 Requirement，不要求覆盖整个模块
       - 使用标准 Requirement + Scenario 格式（非 Delta），记录"当前系统的行为是什么"
-      - 添加 frontmatter 元信息标注为局部基线（格式见 `artifact-system.md`）
+      - 添加 frontmatter 元信息标注为局部基线（格式见 `artifact-delta-specs.md` - 基线规范格式）
 
    d. **主规范新鲜度验证**（仅当 Step 5b 判定"已存在且覆盖"时）
 
@@ -447,7 +447,7 @@ status: in-progress
 - [ ] 范围边界明确——说了"不做什么"和"做什么"一样重要
 - [ ] 影响分析没有遗漏关键模块
 
-完整模板见 `artifact-system.md`
+完整 proposal.md 模板见 `templates.md`
 
 ---
 
@@ -532,4 +532,4 @@ status: in-progress
 - [ ] 没有实现细节混入规范
 - [ ] 棕地场景：MODIFIED/REMOVED 的"之前"描述有明确来源（主规范/基线/代码推断+标注）
 
-完整格式和示例见 `artifact-system.md`
+完整 Delta 格式、RFC 2119、场景编写指南、基线规范格式见 `artifact-delta-specs.md`

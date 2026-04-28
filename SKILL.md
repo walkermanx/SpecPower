@@ -103,19 +103,19 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 明确动机、范围、影响。Flow: 口头30s。Standard+: 创建 `proposal.md`。
 
-> READ `references/phase-guide-planning.md` - Phase 2 和 `references/artifact-system.md`
+> READ `references/phase-guide-planning.md` - Phase 2,proposal 模板见 `references/templates.md`
 
 ### Phase 3: 规范 (Strict only)
 
 Delta 格式精确描述行为变更：ADDED/MODIFIED/REMOVED + RFC 2119 + GIVEN-WHEN-THEN 场景。
 
-> READ `references/phase-guide-planning.md` - Phase 3 和 `references/artifact-system.md`
+> READ `references/phase-guide-planning.md` - Phase 3 和 `references/artifact-delta-specs.md`(Delta 格式 + 基线规范)
 
 ### Phase 4: 设计 (Standard+)
 
 记录技术决策：现状、方案对比、决策理由、风险缓解。Strict 模式增加多角色并行方案对比（架构师/性能专家/资深开发）。
 
-> READ `references/phase-guide-execution.md` - Phase 4 和 `references/artifact-system.md`
+> READ `references/phase-guide-execution.md` - Phase 4,design 与多角色模板见 `references/templates.md`
 
 ### Phase 5: 任务分解 (Standard+)
 
@@ -184,7 +184,7 @@ docs/spec-power/changes/<name>-YYYYMMDDHHMMSS/
 ```
 
 > 详细变更目录管理、Worktree 隔离、平台适配见 `references/phase-guide-closing.md`
-> 工件 DAG、Delta 格式、模板见 `references/artifact-system.md`
+> 工件 DAG 与 `.specpower.yaml` 格式见 `references/artifact-system.md`;工件模板(proposal/design/tasks/多角色)见 `references/templates.md`;Delta 格式与棕地基线规范(Strict)见 `references/artifact-delta-specs.md`
 > 阶段回退协议见 `references/phase-guide-execution.md`
 
 ### 参考资源索引
@@ -194,7 +194,9 @@ docs/spec-power/changes/<name>-YYYYMMDDHHMMSS/
 | `references/phase-guide-planning.md` | Phase 0~3 详细执行步骤 |
 | `references/phase-guide-execution.md` | Phase 4~8 详细执行步骤 |
 | `references/phase-guide-closing.md` | Phase 9~10 + 变更目录管理 + 平台适配 |
-| `references/artifact-system.md` | 工件 DAG、Delta 规范、所有模板 |
+| `references/artifact-system.md` | 工件 DAG、状态机、`.specpower.yaml` 格式 |
+| `references/templates.md` | proposal / design / 多角色 / tasks / behavior-changes 模板 |
+| `references/artifact-delta-specs.md` | Delta 规范 + RFC 2119 + 棕地基线(Strict 专用) |
 | `references/execution-guide.md` | TDD 流程、子agent调度、系统调试 |
 | `references/review-verify.md` | 审查方法论、验证清单、问题分级 |
 | `references/mindset.md` | 反合理化与验证纪律 |

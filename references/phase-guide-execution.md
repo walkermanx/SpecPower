@@ -63,7 +63,7 @@
 - [ ] 接口定义精确到参数和返回值
 - [ ] 识别了至少一个风险
 
-完整模板见 `artifact-system.md`
+完整模板(design.md + Strict 多角色)见 `templates.md`
 
 ### Strict 模式：多角色方案对比
 
@@ -294,7 +294,7 @@ Task 3 ──► Task 4
 - [ ] 无依赖的任务已标注"可并行"
 - [ ] 每个任务都以测试开始（TDD）
 
-完整模板见 `artifact-system.md`
+完整 tasks.md 模板见 `templates.md`
 
 ---
 

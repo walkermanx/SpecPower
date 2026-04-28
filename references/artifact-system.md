@@ -1,8 +1,15 @@
-# 工件系统详解
+# 工件系统概览
+
+本文档讲工件依赖图、状态机与 `.specpower.yaml` 元数据格式——也就是"SpecPower 的工作流结构"。具体模板和 Delta 语法在单独文件里,按需查阅:
+
+- **工件模板**(proposal / design / 多角色 / tasks / behavior-changes) → `templates.md`
+- **Delta 规范 + 基线规范**(Strict 模式的 specs/ 内容) → `artifact-delta-specs.md`
+
+---
 
 ## DAG 模型
 
-工件形成有向无环图（DAG），依赖关系决定了创建顺序，但不是硬性门控——满足依赖的工件可以并行创建。
+工件形成有向无环图(DAG),依赖关系决定了创建顺序,但不是硬性门控——满足依赖的工件可以并行创建。
 
 ### 工件定义
 
@@ -14,384 +21,44 @@
 | specs | `specs/**/*.md` | proposal | Strict |
 | design | `design.md` | proposal | Standard+ |
 | tasks | `tasks.md` | specs(如有) + design | Standard+ |
-| implementation | 源代码（含逐任务审查） | tasks(Standard+) 或 proposal(Flow) | 所有 |
+| implementation | 源代码(含逐任务审查) | tasks(Standard+) 或 proposal(Flow) | 所有 |
 | review | (全局审查记录) | implementation | Standard+ |
 | verification | (验证报告) | review(Standard+) 或 implementation(Flow) | 所有 |
 | behavior-changes | `behavior-changes.md` | verification | Standard+ |
 | archive | `archive/` 目录 | verification | Strict |
 | finish | (分支整合) | verification + archive(如有) | 所有 |
 
-**注**: explore 和 clarify 虽不生成独立文件，但在 `.specpower.yaml` 中追踪以反映工作流进度。
+**注**: explore 和 clarify 虽不生成独立文件,但在 `.specpower.yaml` 中追踪以反映工作流进度。
 
 ### 状态转移
 
-每个工件有三种状态：
+每个工件有三种状态:
 
 ```
 BLOCKED ──► READY ──► DONE
 ```
 
 - **BLOCKED**: 有未完成的依赖
-- **READY**: 所有依赖已完成，可以开始创建
+- **READY**: 所有依赖已完成,可以开始创建
 - **DONE**: 文件已存在且通过自审
 
 ### 并行机会
 
-在 Strict 模式中，specs 和 design 都只依赖 proposal，可以并行创建。识别这种机会能显著加速工作流。
-
----
-
-## Delta 规范
-
-Delta 规范是 Strict 模式的核心概念，描述的是行为**变更**而非完整规范。这使得多个变更可以并行进行而不产生冲突。
-
-### 为什么用 Delta 而非全规范
-
-1. **清晰性** — 一眼看出改了什么
-2. **冲突避免** — 多个变更可触及同一 spec 而无冲突
-3. **审查高效** — 只看改动，无需心理 diff
-4. **棕地友好** — 对已有系统的修改是一级概念
-5. **基线按需生成** — 棕地项目首次使用时，仅为涉及 MODIFIED/REMOVED 的模块生成局部基线，不需要为整个系统写规范
-
-### Delta 格式详解
-
-每个 Delta spec 包含三种操作：
-
-#### ADDED — 新增需求
-
-```markdown
-## ADDED Requirements
-
-### Requirement: 用户头像上传
-系统 SHALL 允许用户上传 JPEG 或 PNG 格式的头像图片。
-系统 MUST 限制上传文件大小不超过 5MB。
-
-#### Scenario: 成功上传头像
-- **GIVEN** 一个已登录用户
-- **WHEN** 用户上传一张 2MB 的 JPEG 图片
-- **THEN** 系统保存图片并返回图片 URL
-- **AND** 用户的个人资料页显示新头像
-
-#### Scenario: 文件过大
-- **GIVEN** 一个已登录用户
-- **WHEN** 用户上传一张 6MB 的图片
-- **THEN** 系统返回错误提示"文件大小不能超过 5MB"
-- **AND** 原头像保持不变
-```
-
-#### MODIFIED — 修改现有需求
-
-```markdown
-## MODIFIED Requirements
-
-### Requirement: 会话过期
-系统 MUST 在 30 分钟不活动后过期会话。
-(之前: 系统 MUST 在 60 分钟不活动后过期会话。)
-
-#### Scenario: 空闲超时
-- **GIVEN** 一个活跃会话
-- **WHEN** 30 分钟内无任何请求
-- **THEN** 会话标记为过期
-- **AND** 下次请求返回 401 并要求重新认证
-```
-
-#### REMOVED — 删除需求
-
-```markdown
-## REMOVED Requirements
-
-### Requirement: Legacy XML 导出
-**原因**: 所有客户端已迁移到 JSON API，XML 端点零流量
-**迁移**: 使用 `/api/v2/export?format=json`
-**生效日期**: 下个版本
-```
-
-### RFC 2119 关键词使用
-
-| 关键词 | 含义 | 用法 |
-|--------|------|------|
-| MUST / SHALL | 绝对要求 | 违反即为 bug |
-| MUST NOT / SHALL NOT | 绝对禁止 | 违反即为 bug |
-| SHOULD | 推荐做法 | 可以不做但需要充分理由 |
-| SHOULD NOT | 不推荐做法 | 可以做但需要充分理由 |
-| MAY | 可选行为 | 实现者自行决定 |
-
-### 场景编写指南
-
-好的场景可以直接转化为测试用例：
-
-**好场景** — 具体、可验证：
-```markdown
-#### Scenario: 并发修改冲突
-- **GIVEN** 用户 A 和 B 同时编辑同一文档
-- **WHEN** 用户 A 先保存，用户 B 随后保存
-- **THEN** 系统检测到冲突
-- **AND** 用户 B 收到冲突提示并展示 diff
-```
-
-**差场景** — 模糊、不可测试：
-```markdown
-#### Scenario: 系统性能良好
-- **WHEN** 有很多用户
-- **THEN** 系统运行流畅
-```
-
-### Delta 合并
-
-归档时，Delta 规范会合并到主规范中：
-
-1. ADDED → 追加到主规范相应 section
-2. MODIFIED → 替换主规范中的对应需求块
-3. REMOVED → 从主规范中删除对应需求
-
-**棕地首次合并**（主规范 `docs/spec-power/specs/<domain>/spec.md` 不存在时）:
-- 有 Phase 1 生成的局部基线 → 以基线为起点，应用 Delta 操作，生成主规范
-- 无基线且全是 ADDED → 直接用 ADDED 内容创建主规范
-- 合并完成后移除基线文件的 `type: baseline` frontmatter 元信息
-
----
-
-## 工件模板
-
-### proposal.md 完整模板
-
-```markdown
-# <变更名称>
-
-## 动机
-<为什么要做这个变更？解决什么问题？有什么背景？>
-
-## 变更范围
-
-### 新增能力
-- `<capability-id>`: <一句话描述>
-
-### 修改能力
-- `<capability-id>`: <什么变了，之前是什么>
-
-### 不在范围内
-- <明确列出不做的事情，避免范围蔓延>
-
-## 影响分析
-
-### 向后兼容性
-<是否兼容？不兼容的话如何处理？>
-
-### 性能影响
-<预期的性能变化>
-
-### 安全考虑
-<是否引入新的攻击面？>
-
-### 依赖变化
-<新增或移除的依赖>
-
-## 成功标准
-<怎么算"做完了"？可量化的指标>
-```
-
-### design.md 完整模板
-
-```markdown
-# <变更名称> 技术设计
-
-## 现状
-<当前系统相关部分如何工作>
-
-## 目标
-- <目标 1>
-- <目标 2>
-
-## 非目标
-- <明确不追求的目标>
-
-## 方案对比
-
-### 方案 A: <名称> (推荐)
-<核心思路描述>
-
-**优势**:
-- ...
-
-**劣势**:
-- ...
-
-**实现复杂度**: 低/中/高
-
-### 方案 B: <名称>
-<核心思路描述>
-
-**优势**:
-- ...
-
-**劣势**:
-- ...
-
-## 决策
-选择方案 A。
-<决策理由，具体到为什么 A 的优势比 B 更重要>
-
-## 关键设计
-
-### 数据模型
-<新增或修改的数据结构>
-
-### 接口设计
-<API、函数签名、事件>
-
-### 错误处理
-<错误类型和处理策略>
-
-## 风险与缓解
-
-| 风险 | 概率 | 影响 | 缓解措施 |
-|------|------|------|---------|
-| ... | 低/中/高 | 低/中/高 | ... |
-
-## 迁移计划 (如需)
-<分步部署、数据迁移、回滚方案>
-```
-
-### 多角色方案对比模板 (Strict 模式)
-
-Strict 模式的 Phase 4 在产出完整 design.md 之前，先通过三角色并行产出聚焦方案，再由技术负责人对比。以下是相关工件的模板。
-
-#### 共享上下文模板
-
-```markdown
-## 共享上下文
-
-### 现状
-<当前系统相关部分如何工作>
-
-### 目标
-- <目标 1>
-- <目标 2>
-
-### 非目标
-- <明确不追求的目标>
-
-### 硬约束
-- 技术栈: <不可变的技术选型>
-- 兼容性: <必须保持的兼容性>
-- 性能底线: <不可低于的性能指标>
-- 其他约束: <团队规模、上线时间等>
-```
-
-#### 聚焦方案模板（每个角色各一份）
-
-```markdown
-## [架构师/性能专家/资深开发] 方案: <方案名称>
-
-### 核心策略
-<2-3段话说清整体思路和技术选型，从本角色优化目标出发>
-
-### 关键设计决策
-1. **[决策点1]**: 选择 X 而非 Y，因为 <从本角色优化目标出发的理由>
-2. **[决策点2]**: ...
-3. **[决策点3]**: ...
-
-### 架构概要
-<核心模块划分、数据流、关键接口>
-
-### 优势
-- ...
-
-### 已知代价与风险
-- ...
-
-### 与其他视角的预期分歧
-- [另一角色]可能认为: ...
-- [另一角色]可能认为: ...
-```
-
-#### 技术负责人对比矩阵模板
-
-```markdown
-## 技术负责人方案对比
-
-### 对比矩阵
-
-| 维度 | 架构师方案 | 性能专家方案 | 资深开发方案 |
-|------|-----------|------------|------------|
-| 架构合理性 | <评级> / <说明> | <评级> / <说明> | <评级> / <说明> |
-| 性能表现   | <评级> / <说明> | <评级> / <说明> | <评级> / <说明> |
-| 开发成本   | <评级> / <说明> | <评级> / <说明> | <评级> / <说明> |
-| 可维护性   | <评级> / <说明> | <评级> / <说明> | <评级> / <说明> |
-| 风险程度   | <评级> / <说明> | <评级> / <说明> | <评级> / <说明> |
-
-### 推荐方案
-推荐 **[方案名]**
-
-### 推荐理由
-1. ...
-2. ...
-3. ...
-
-### 交叉借鉴（可选）
-- 从 [方案X] 借鉴 <具体设计点>
-```
-
-### tasks.md 完整模板
-
-```markdown
-# <变更名称> 实现计划
-
-> **执行方式**: 使用 spec-power 执行阶段
-
-**目标**: <一句话>
-**架构**: <2-3句话概括>
-**技术栈**: <关键技术>
-
-## Task 1: <组件名>
-
-**文件**:
-- Create: `<精确路径>`
-- Modify: `<精确路径>`
-- Test: `<精确路径>`
-
-**依赖**: 无 (可并行)
-
-**步骤**:
-- [ ] 编写失败测试: `<具体描述测试什么>`
-  验证: `<运行命令>` → 期望失败
-- [ ] 最小实现使测试通过
-  验证: `<运行命令>` → 期望全部通过
-- [ ] 重构 (如需)
-  验证: `<运行命令>` → 保持全部通过
-- [ ] 【控制器】审查通过后提交（实现者不执行此步）
-
-## Task 2: <组件名>
-
-**文件**: ...
-**依赖**: Task 1 (需要其导出的接口)
-
-**步骤**:
-- [ ] ...
-
----
-
-## 依赖图
-
-```
-Task 1 ──► Task 3
-Task 2 ──► Task 3
-Task 3 ──► Task 4
-```
-
-可并行: Task 1, Task 2
-```
+在 Strict 模式中,specs 和 design 都只依赖 proposal,可以并行创建。识别这种机会能显著加速工作流。
 
 ---
 
 ## .specpower.yaml 格式
 
-**Standard 模式示例**:
+每个变更目录根下都有一个 `.specpower.yaml`,记录模式、基准分支、状态和工件进度。跨会话恢复时,skill 读此文件判断从哪里继续。
+
+### Standard 模式示例
+
 ```yaml
 name: add-user-avatars-20260407143025
 mode: standard              # flow | standard | strict
 created: 2026-04-07
-base_branch: main           # 创建时所在的分支（收尾时合并回此分支）
+base_branch: main           # 创建时所在的分支(收尾时合并回此分支)
 status: in-progress          # in-progress | review | done | archived
 # 状态流转: in-progress → done (合并) | in-progress → review (PR) → done (PR合并后手动更新) | in-progress → archived (废弃)
 artifacts:
@@ -405,12 +72,13 @@ artifacts:
   finish: blocked
 ```
 
-**Strict 模式示例**:
+### Strict 模式示例
+
 ```yaml
 name: refactor-auth-20260407143025
 mode: strict
 created: 2026-04-07
-base_branch: feature/api-v2  # 创建时所在的分支（收尾时合并回此分支）
+base_branch: feature/api-v2  # 创建时所在的分支(收尾时合并回此分支)
 status: in-progress
 artifacts:
   explore: done
@@ -426,80 +94,12 @@ artifacts:
   finish: blocked
 ```
 
----
-
-## 基线规范格式（棕地项目局部基线）
-
-当棕地项目首次使用 Strict 模式且涉及 MODIFIED/REMOVED 时，Phase 1 探索阶段按需生成局部基线。基线使用标准 Requirement + Scenario 格式（非 Delta），描述"当前系统的行为是什么"。
-
-### 基线与 Delta 的区别
-
-| 维度 | 基线规范 | Delta 规范 |
-|------|---------|-----------|
-| 描述内容 | 当前行为（是什么） | 行为变更（改什么） |
-| 格式 | 标准 Requirement + Scenario | ADDED/MODIFIED/REMOVED 操作 |
-| 存放位置 | `docs/spec-power/specs/<domain>/spec.md` | `docs/spec-power/changes/<name>/specs/<domain>/spec.md` |
-| 覆盖范围 | 仅本次变更涉及的 Requirement | 本次变更的所有行为变更 |
-| 生命周期 | 归档后成为主规范的一部分 | 归档后移入 archive |
-
-### 基线模板
-
-```markdown
----
-type: baseline
-generated: <YYYY-MM-DD>
-scope: partial
-change: <change-name>-YYYYMMDDHHMMSS
----
-
-# <模块名称> 现有行为规范
-
-> 局部基线，仅覆盖变更 `<change-name>` 涉及的需求。基于 Phase 1 探索阶段的代码阅读生成。
-
-## Requirements
-
-### Requirement: <需求名>
-<当前行为描述，使用 RFC 2119 关键词>
-
-#### Scenario: <场景名>
-- **GIVEN** <前置条件>
-- **WHEN** <触发动作>
-- **THEN** <预期结果>
-- **AND** <额外条件或结果>
-```
-
-### 注意事项
-
-- 基线仅覆盖本次变更涉及的 Requirement，不需要完整描述整个模块
-- `scope: partial` 标明这是局部基线，后续变更可逐步补充
-- 归档合并后，基线内容被 Delta 操作更新，frontmatter 元信息被移除，成为正式主规范的一部分
+Flow 模式不创建变更目录,不生成 `.specpower.yaml`,因此 Flow 任务不支持跨会话恢复,应在单次会话内完成。
 
 ---
 
-## 行为变更摘要格式（Standard+ 模式）
+## 按需查阅
 
-Standard+ 模式验证通过后，如果本次变更修改了已有行为（而非纯新增），在变更目录生成 `behavior-changes.md`。此文件为后续 Strict 变更提供行为漂移的信号源，也作为 Standard 模式 spec-reviewer 的审查输入。
-
-### behavior-changes.md 模板
-
-```markdown
-## 行为变更摘要
-
-> 变更: <change-name>
-> 日期: <YYYY-MM-DD>
-
-### 模块: <domain>
-- <行为变更描述：什么从什么变成了什么>
-- <行为变更描述>
-
-### 模块: <domain>
-- <行为变更描述>
-```
-
-### 撰写要求
-
-- 自然语言描述，无需 Scenario 格式或 RFC 2119 关键词
-- 聚焦"之前→之后"的行为差异，不描述实现细节
-- 每条变更一行，格式为"<对象> 从 <旧行为> 改为 <新行为>"或等价的自然表述
-- 仅记录已有行为的修改，纯新增能力不需要记录
-- 耗时应 < 2 分钟
+- 需要**具体模板**(proposal.md、design.md、tasks.md 等怎么填)→ `templates.md`
+- 需要 **Delta 规范格式**(ADDED/MODIFIED/REMOVED、RFC 2119、场景编写、基线规范)→ `artifact-delta-specs.md`
+- 需要各 Phase 的执行步骤和清单 → `phase-guide-planning.md` / `phase-guide-execution.md` / `phase-guide-closing.md`
