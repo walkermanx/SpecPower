@@ -314,6 +314,26 @@ Task 3 ──► Task 4
 
 Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 Standard+ 模式。
 
+### 子agent审查触发阈值（权威表）
+
+本表是子agent审查触发阈值的**单一权威源**。`agents/spec-reviewer.md` 与 `agents/code-reviewer.md` 的阈值描述必须指向此表，不得独立维护数字。
+
+| 子agent | Flow | Standard | Strict |
+|---------|------|----------|--------|
+| `spec-reviewer` | 不触发（自审替代） | diff ≥ 100 行 或 强制例外 | 逐任务触发（无行数阈值） |
+| `code-reviewer` | 不触发（自审替代） | diff ≥ 20 行 或 强制例外 | 逐任务触发（无行数阈值） |
+
+**强制例外**（无论行数、无论模式，必须触发对应子agent审查）：
+- 安全（认证/授权/注入/敏感数据）
+- SQL 与数据库交互
+- 并发 / 锁 / 事务
+- 金额 / 精度 / 舍入
+- 公开 API / 契约变更
+
+**为什么 Strict 无行数阈值**：Strict 是关键系统或跨模块变更，任何一个小改动都可能触发非预期行为。宁多勿漏。
+
+**低于阈值的变更如何兜底**：Standard 模式下跳过子agent审查的任务，在 Phase 7 "小变更补位审查"中回顾检查（见 Phase 7 章节）。
+
 ### 执行方式选择（Standard+）
 
 **子agent并行**（Claude Code，推荐）:

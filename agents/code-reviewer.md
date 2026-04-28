@@ -3,7 +3,7 @@
 当 dispatch 子agent 进行代码质量审查时，使用此模板。
 
 **注入量目标: < 2000 tokens**。只注入代码 diff + 审查清单摘要，不传设计文档全文。
-**触发阈值**: Strict >= 10 行 | Standard >= 20 行 | Flow >= 100 行。强制例外（安全/SQL/并发/金额/公开API）无论大小必触发。
+**触发阈值**: 以 `references/phase-guide-execution.md` Phase 6 "子agent审查触发阈值（权威表）" 为准。摘要——Strict 逐任务触发（无行数阈值）；Standard diff ≥ 20 行 或 强制例外（安全/SQL/并发/金额/公开API）；Flow 不触发。
 
 ---
 
