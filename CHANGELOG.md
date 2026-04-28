@@ -9,6 +9,60 @@
 
 ---
 
+## [1.9.0] - 2026-04-28
+
+### 重构 🔨
+
+- **artifact-system 按渐进披露分层拆分**
+  - 原 505 行 `artifact-system.md` 拆分为三个独立文件，按用户所在 Phase 按需路由
+  - `artifact-system.md`（105 行）：保留 DAG、状态机、`.specpower.yaml` 格式，作为结构总览
+  - `templates.md`（新，277 行）：集中 proposal / design / 多角色 / tasks / behavior-changes 五个模板
+  - `artifact-delta-specs.md`（新，171 行）：Delta 格式 + RFC 2119 + 场景编写 + Delta 合并 + 棕地基线规范，Strict 专用
+  - 同步更新 SKILL.md、phase-guide-planning/execution 共 5 处模板引用指向
+
+- **验证纪律统一 review-verify 为单一权威源**
+  - 将 5 步验证门函数、反合理化借口对照、Red Flags 触发词等操作性细节从 `mindset.md` 迁入 `review-verify.md`
+  - `review-verify.md` 声明为验证纪律单一权威源（293→370 行）
+  - `mindset.md` 压缩为心态铁律 + 引用指向（272→199 行，内容守恒无信息丢失）
+  - `phase-guide-execution.md` Phase 6 验证纪律指引改指 `review-verify`
+
+- **Strict 三视角强制差异化输出维度**
+  - 原 architect / perf-expert / senior-dev 三个 agent 的"架构概要"章节输出格式完全同构，方案对比易流于形式
+  - `architect.md`：新增模块依赖图（ASCII）+ 关键边界接口签名（≥3 个）必填清单
+  - `perf-expert.md`：新增热路径 vs 冷路径标注（带 QPS 估算）+ 关键操作延迟预估（p50/p95/p99）必填清单
+  - `senior-dev.md`：新增项目内复用清单（≥3 条，按"对象 → 用途"格式）+ 新增 vs 修改代码比例估算必填清单
+
+- **SKILL.md description 瘦身聚焦触发场景**
+  - 原 description 含 12 个触发关键词及大量实现细节，违反冷启动 30s 判断原则
+  - 缩减至约 180 字，聚焦 7 个核心使用场景，明确正负边界
+  - 加入"避免大改动无计划翻车"的 why 句提升触发吸引力，具体机制下沉至 SKILL.md 正文
+
+### 修复 🐛
+
+- **审查阈值建立单一权威源**
+  - `phase-guide-execution.md` Phase 6 新增"子 agent 审查触发阈值（权威表）"
+  - `spec-reviewer.md` 与 `code-reviewer.md` 改为指向此表，不再独立维护数字
+  - 消除此前 spec ≥100 vs code ≥10/20/100 数字不一致，以及"Strict 逐任务"与"Strict ≥10 行"的潜在矛盾
+
+- **implementer 与 execution-guide 在 TDD/状态码上去冲突**
+  - `implementer.md` 原写"TDD 是铁律，不允许例外"，与 `execution-guide.md` 豁免场景直接冲突
+  - 改为逻辑变更遵循 TDD、其他场景按 execution-guide 豁免表执行，并附"为什么不是铁律"的理由
+  - 状态码说明改为指向 execution-guide"子 agent 状态处理"权威表，不再在 agent prompt 中独立维护语义
+
+- **强制逐任务 git 提交 + Phase 9 归档持久化**
+  - Phase 6 新增提交门控：控制器在全部审查通过后执行 commit，按模式区分提交时机
+  - 任务模板 commit 步骤改为控制器职责，防止 implementer 子 agent 自行提交
+  - Git 提交规范升级为与 TDD 同等级别的铁律
+  - Phase 9 归档新增强制 commit，防止 worktree 清理时丢失 untracked 归档文件
+
+- **Claude Code worktree 创建改用先建后进两步法**
+  - `EnterWorktree(name=...)` 不支持指定 base_branch，改为先 `git worktree add` 显式指定基准，再 `EnterWorktree(path=...)` 进入
+  - 兼顾基准精确性和会话状态管理，避免分支基于错误 commit
+
+- **根据自动化测试报告进行流程优化**
+
+---
+
 ## [1.8.2] - 2026-04-27
 
 ### 新增 ✨
