@@ -139,16 +139,15 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
 
 ---
 
-## Worktree 隔离 (模式确认后)
+## 变更目录初始化 (模式确认后，所有模式必须执行)
 
 ### 目标
 
-在进入任何实际工作 Phase 之前，创建 Git Worktree 物理隔离环境。**确保工作分支基于正确的基准分支**。
+创建变更目录和元数据文件，为后续工件提供存储位置。**此步骤所有模式必须执行，不可跳过。**
 
 ### 适用条件
 
-- **Strict 模式**: 必需
-- **Standard/Flow 模式**: 可选（用户要求或推荐时使用）
+- **所有模式**: 必需（Flow/Standard/Strict）
 - **前置条件**: Phase 0 模式确认完成
 
 ### 执行步骤
@@ -161,7 +160,7 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
 git rev-parse --abbrev-ref HEAD
 ```
 
-**向用户确认**："当前在 `<branch-name>` 分支上，将基于此分支创建 worktree 隔离环境。确认？"
+**向用户确认**："当前在 `<branch-name>` 分支上，将基于此分支进行变更。确认？"
 
 如果用户期望基于其他分支，记录用户指定的分支名即可（无需 checkout）。
 
@@ -173,7 +172,43 @@ git rev-parse --abbrev-ref HEAD
 mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
 ```
 
-#### Step 3: 创建 Worktree
+#### Step 3: 写入元数据
+
+创建 `docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/.specpower.yaml`：
+
+```yaml
+name: <change-name>-YYYYMMDDHHMMSS
+mode: flow          # flow | standard | strict
+created: YYYY-MM-DD
+base_branch: <base_branch>   # Step 1 中确认的基准分支
+status: in-progress
+```
+
+### 常见错误
+
+| 错误 | 原因 | 预防 |
+|------|------|------|
+| 遗漏 `.specpower.yaml` | 跳过了此步骤 | 所有模式必须执行此步骤 |
+| base_branch 记录与实际不一致 | 仅记录分支名未验证 | 使用 `git rev-parse --abbrev-ref HEAD` 确认 |
+
+---
+
+## Worktree 隔离 (可选，Standard/Strict 推荐)
+
+### 目标
+
+创建 Git Worktree 物理隔离环境，确保工作分支基于正确的基准分支。**此步骤可选，但推荐用于 Standard 和 Strict 模式。**
+
+### 适用条件
+
+- **Strict 模式**: 强烈推荐
+- **Standard 模式**: 推荐（特别是多人协作或长期任务）
+- **Flow 模式**: 通常不需要
+- **前置条件**: 变更目录初始化完成
+
+### 执行步骤
+
+#### Step 1: 创建 Worktree
 
 **Claude Code（先创建再进入）**:
 
@@ -200,7 +235,7 @@ git worktree add .worktrees/<change-name>-YYYYMMDDHHMMSS \
 cd .worktrees/<change-name>-YYYYMMDDHHMMSS
 ```
 
-#### Step 4: 验证分支基准
+#### Step 2: 验证分支基准
 
 Worktree 创建后，**立即验证**新分支的基准是否正确：
 
@@ -213,17 +248,18 @@ git log --oneline -1 <base_branch>
 如果两者 commit 不一致：
 1. 退出并删除 worktree（Claude Code: `ExitWorktree(action="remove")`）
 2. 检查 `<base_branch>` 是否拼写正确、是否已 fetch 最新
-3. 重新执行 Step 3-4
+3. 重新执行 Step 1-2
 
-#### Step 5: 写入元数据
+#### Step 3: 更新元数据
 
-创建 `docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS/.specpower.yaml`：
+更新 `.specpower.yaml`，添加 worktree 信息：
 
 ```yaml
 name: <change-name>-YYYYMMDDHHMMSS
 mode: strict          # flow | standard | strict
 created: YYYY-MM-DD
-base_branch: <base_branch>   # Step 1 中确认的基准分支
+base_branch: <base_branch>
+worktree_path: .claude/worktrees/<change-name>-YYYYMMDDHHMMSS  # 新增
 status: in-progress
 ```
 
@@ -231,8 +267,7 @@ status: in-progress
 
 | 错误 | 原因 | 预防 |
 |------|------|------|
-| 新分支基于错误 commit | `git worktree add` 的 base_branch 参数拼写错误或未 fetch | Step 4 验证 commit hash |
-| base_branch 记录与实际不一致 | 仅记录分支名未验证 commit | Step 4 对比 commit hash |
+| 新分支基于错误 commit | `git worktree add` 的 base_branch 参数拼写错误或未 fetch | Step 2 验证 commit hash |
 | 多次创建 worktree 分支冲突 | 时间戳重复 | 名称中包含 YYYYMMDDHHMMSS 精确到秒 |
 
 ---

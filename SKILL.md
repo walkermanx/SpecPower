@@ -99,7 +99,7 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
    ```bash
    [ -d docs/spec-power/changes ] && find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
    ```
-   **注意**: Flow 模式不创建变更目录，因此不支持跨会话恢复。Flow 任务应在单次会话内完成。
+   **注意**: Flow 模式也创建变更目录，支持跨会话恢复。
 
 2. **读取变更状态** — 读取 `.specpower.yaml` 确认模式、工件状态，加载已完成工件。
 
@@ -160,9 +160,15 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 每个 Phase 进入前按指示 READ 对应参考文件。
 
-### Worktree 隔离 (Strict 必需, Standard/Flow 可选)
+### 变更目录初始化 (模式确认后，所有模式必须执行)
 
-模式确认后、进入实际工作 Phase 前创建隔离环境。Claude Code 下先用 `git worktree add ... <base_branch>` 显式指定基准分支创建 worktree，再用 `EnterWorktree(path=...)` 进入以获得会话状态管理。
+模式确认后、进入实际工作 Phase 前，创建变更目录和 `.specpower.yaml` 元数据文件。**此步骤所有模式必须执行，不可跳过。**
+
+> READ `references/phase-guide-planning.md` - 变更目录初始化
+
+### Worktree 隔离 (可选，Standard/Strict 推荐)
+
+创建 Git Worktree 物理隔离环境。Claude Code 下先用 `git worktree add ... <base_branch>` 显式指定基准分支创建 worktree，再用 `EnterWorktree(path=...)` 进入以获得会话状态管理。**此步骤可选，但推荐用于 Standard 和 Strict 模式。**
 
 > READ `references/phase-guide-planning.md` - Worktree 隔离
 
@@ -259,7 +265,8 @@ Step 6: git commit → 验证commit存在 → 标记任务完成
 
 进入 Strict 模式后，必须通过以下检查点：
 
-- ✅ Worktree 隔离 (模式确认后)
+- ✅ 变更目录初始化 (模式确认后，所有模式必须执行)
+- ✅ Worktree 隔离 (推荐，但可选)
 - ✅ 探索阶段 (Phase 1)
 - ✅ 规范阶段 (Phase 3): Delta 规范已生成
 - ✅ 设计阶段 (Phase 4): 技术方案确定
