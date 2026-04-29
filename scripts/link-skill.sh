@@ -301,7 +301,9 @@ for level in 0 1 2 3; do
   search_dir="$parent"
 done
 # 去重
-PROJECT_TARGETS=($(printf "%s\n" "${PROJECT_TARGETS[@]}" | sort -u))
+if [[ ${#PROJECT_TARGETS[@]} -gt 0 ]]; then
+  PROJECT_TARGETS=($(printf "%s\n" "${PROJECT_TARGETS[@]}" | sort -u))
+fi
 
 USER_TARGETS=()
 for config_dir in ".claude" ".micode" ".cursor"; do
@@ -314,7 +316,9 @@ if [[ -d "$HOME/.config/opencode" ]]; then
   USER_TARGETS+=("$HOME/.config/opencode/skills")
 fi
 # 去重
-USER_TARGETS=($(printf "%s\n" "${USER_TARGETS[@]}" | sort -u))
+if [[ ${#USER_TARGETS[@]} -gt 0 ]]; then
+  USER_TARGETS=($(printf "%s\n" "${USER_TARGETS[@]}" | sort -u))
+fi
 
 if [[ ${#PROJECT_TARGETS[@]} -eq 0 && ${#USER_TARGETS[@]} -eq 0 ]]; then
   echo "⚠️  未在项目级（上级 3 层）和用户级（~/）找到任何 .claude、.micode、.cursor 或 .opencode 目录，退出"
@@ -325,23 +329,27 @@ fi
 ALL_TARGETS=()
 TARGET_LABELS=()
 
-for target in "${PROJECT_TARGETS[@]}"; do
-  ALL_TARGETS+=("$target")
-  if [[ -d "$target" ]]; then
-    TARGET_LABELS+=("[项目级] $target  (已有 skills/)")
-  else
-    TARGET_LABELS+=("[项目级] $target  (将自动创建 skills/)")
-  fi
-done
+if [[ ${#PROJECT_TARGETS[@]} -gt 0 ]]; then
+  for target in "${PROJECT_TARGETS[@]}"; do
+    ALL_TARGETS+=("$target")
+    if [[ -d "$target" ]]; then
+      TARGET_LABELS+=("[项目级] $target  (已有 skills/)")
+    else
+      TARGET_LABELS+=("[项目级] $target  (将自动创建 skills/)")
+    fi
+  done
+fi
 
-for target in "${USER_TARGETS[@]}"; do
-  ALL_TARGETS+=("$target")
-  if [[ -d "$target" ]]; then
-    TARGET_LABELS+=("[用户级] $target  (已有 skills/)")
-  else
-    TARGET_LABELS+=("[用户级] $target  (将自动创建 skills/)")
-  fi
-done
+if [[ ${#USER_TARGETS[@]} -gt 0 ]]; then
+  for target in "${USER_TARGETS[@]}"; do
+    ALL_TARGETS+=("$target")
+    if [[ -d "$target" ]]; then
+      TARGET_LABELS+=("[用户级] $target  (已有 skills/)")
+    else
+      TARGET_LABELS+=("[用户级] $target  (将自动创建 skills/)")
+    fi
+  done
+fi
 
 # 添加自定义选项
 ALL_TARGETS+=("CUSTOM")
