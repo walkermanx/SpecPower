@@ -23,6 +23,8 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 | **逐任务提交** | Standard+ | 每个任务审查通过后必须立即 `git commit`，不允许"最后一起提交" |
 | **逐任务循环** | Standard+ | 每个任务必须完成完整 6 步循环后才能开始下一个任务 |
 | **验证必须运行** | 所有 | 不是"我认为测试应该通过"，而是"我运行了测试，结果如下" |
+| **提案确认门** | Standard+ | Phase 2 提案写完后必须呈现给用户并等待明确批准，用户批准前不得进入 Phase 4 |
+| **设计确认门** | Standard+ | Phase 4 设计写完后必须呈现给用户并等待明确批准，用户批准前不得进入 Phase 5 |
 
 **逐任务循环 6 步**：实现(TDD) → 自审 → 规范审查(触发时) → 代码审查 → 修复闭环 → git commit
 
@@ -113,7 +115,7 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 ### Phase 1.5: 需求澄清 (Standard+)
 
-对话澄清模糊需求：逐个提问 → 方向速览 → 范围确认。Standard 1-3 个关键问题；Strict 完整流程；需求已明确时可跳过。
+对话澄清模糊需求：逐个提问 → 方向速览 → 范围确认。Standard 1-3 个关键问题；Strict 完整流程；需求已充分明确时可跳过，但跳过时必须在对话中向用户说明跳过原因，不得静默跳过。
 
 > READ `references/phase-guide-planning.md` - Phase 1.5
 
