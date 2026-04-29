@@ -12,6 +12,24 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 
 ---
 
+## 关键规则速查 (必须遵守)
+
+> 这些是 SpecPower 的铁律，违反任何一条都会导致流程失效。
+
+| 规则 | 适用模式 | 说明 |
+|------|---------|------|
+| **逐任务 TDD** | 所有 | RED → GREEN → REFACTOR，每个任务必须经过完整 TDD 循环 |
+| **逐任务自审** | 所有 | 每个任务完成后必须执行 30 秒自审（代码完整性 + 测试覆盖 + 安全基线） |
+| **逐任务提交** | Standard+ | 每个任务审查通过后必须立即 `git commit`，不允许"最后一起提交" |
+| **逐任务循环** | Standard+ | 每个任务必须完成完整 6 步循环后才能开始下一个任务 |
+| **验证必须运行** | 所有 | 不是"我认为测试应该通过"，而是"我运行了测试，结果如下" |
+
+**逐任务循环 6 步**：实现(TDD) → 自审 → 规范审查(触发时) → 代码审查 → 修复闭环 → git commit
+
+**为什么逐任务循环是铁律**：每个任务是一个独立的完整单元。跳过任何步骤都会导致质量问题累积，最终无法回滚。
+
+---
+
 ## 恢复进行中的变更
 
 如果你在新对话中打开项目，检测到有进行中的变更时：
@@ -125,7 +143,27 @@ Delta 格式精确描述行为变更：ADDED/MODIFIED/REMOVED + RFC 2119 + GIVEN
 
 ### Phase 6: 执行与逐任务审查 (All modes)
 
-TDD 铁律（RED→GREEN→REFACTOR）+ 逐任务审查（自审→spec审→code审）+ 修复闭环（最多3轮）。
+**核心规则：每个任务必须完成完整的 6 步循环后才能开始下一个任务。**
+
+```
+任务N开始
+    ↓
+Step 1: 实现（TDD: RED → 验证RED → GREEN → 验证GREEN → REFACTOR）
+    ↓
+Step 2: 自我审查（30秒清单：代码完整性 + 测试覆盖 + 安全基线）
+    ↓
+Step 3: 规范符合审查（Standard/Strict，触发时）
+    ↓
+Step 4: 代码质量审查（Standard+）
+    ↓
+Step 5: 修复→重审闭环（如有问题，最多3轮）
+    ↓
+Step 6: git commit → 验证commit存在 → 标记任务完成
+    ↓
+任务N+1开始（不能提前开始！）
+```
+
+> **禁止**：跳过任何步骤、批量实现后批量审查、批量提交。每个任务是独立的完整循环。
 
 > READ `references/phase-guide-execution.md` - Phase 6
 > TDD: `references/execution-guide.md` | 审查: `references/review-verify.md` | Flow: `references/flow-mode-guide.md`
