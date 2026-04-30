@@ -139,18 +139,21 @@ Phase 0 是为了"选对工具"，Phase 1 是为了"用好工具"。
 
 ---
 
-## 变更目录初始化 (模式确认后，所有模式必须执行)
+## 变更目录初始化 (Standard+ 必须执行, Flow 跳过)
 
 ### 目标
 
-创建变更目录和元数据文件，为后续工件提供存储位置。**此步骤所有模式必须执行，不可跳过。**
+创建变更目录和元数据文件，为后续工件提供存储位置。
 
 ### 适用条件
 
-- **所有模式**: 必需（Flow/Standard/Strict）
+- **Standard / Strict**: 必需
+- **Flow**: **跳过** — Flow 模式不创建变更目录, 不生成 `.specpower.yaml`, 不产出 `reviews/`。Flow 任务应在单次会话内完成, 不支持跨会话恢复
 - **前置条件**: Phase 0 模式确认完成
 
-### 执行步骤
+> **v1.11.0 说明**: Flow 模式从此不再创建变更目录。此前 v1.10.0 SKILL.md 曾描述 "Flow 也创建变更目录", 与 `flow-mode-guide.md` 长期不一致, 本次统一为 "Flow 超轻量化" — 直接进入 TDD, 无元数据开销。
+
+### 执行步骤 (Standard+ 模式)
 
 #### Step 1: 确认基准分支
 
@@ -178,17 +181,27 @@ mkdir -p docs/spec-power/changes/<change-name>-YYYYMMDDHHMMSS
 
 ```yaml
 name: <change-name>-YYYYMMDDHHMMSS
-mode: flow          # flow | standard | strict
+mode: standard          # standard | strict  (Flow 不生成此文件)
 created: YYYY-MM-DD
 base_branch: <base_branch>   # Step 1 中确认的基准分支
 status: in-progress
 ```
 
-### 常见错误
+### Flow 模式替代方案
+
+Flow 模式跳过本章节。直接进入:
+- 口头提案 (1 句话说明改什么、为什么、怎么验证)
+- TDD 执行 (RED → GREEN → REFACTOR)
+- git commit
+
+详见 `flow-mode-guide.md`。
+
+### 常见错误 (Standard+)
 
 | 错误 | 原因 | 预防 |
 |------|------|------|
-| 遗漏 `.specpower.yaml` | 跳过了此步骤 | 所有模式必须执行此步骤 |
+| 遗漏 `.specpower.yaml` | Standard+ 跳过了此步骤 | Standard/Strict 必须执行 |
+| Flow 模式创建了变更目录 | 误用 v1.10 前的行为 | v1.11.0 起 Flow 不产出元数据 |
 | base_branch 记录与实际不一致 | 仅记录分支名未验证 | 使用 `git rev-parse --abbrev-ref HEAD` 确认 |
 
 ---
