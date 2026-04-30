@@ -1,6 +1,6 @@
 ---
 name: spec-power
-version: "1.10.0"
+version: "1.11.0"
 description: "SpecPower - 规范驱动的结构化开发工作流。遇到以下场景强烈建议启用:开发新功能、重构模块、跨多模块或核心系统改动、复杂bug 排查、架构设计、团队协作或需长期维护的代码。根据影响范围自动推荐三档严格度(轻量/日常/关键),按阶段推进规划、设计、执行、审查、验证——避免大改动在没有计划的情况下一路做下去翻车。适合大于单文件的任何实质改动;不适用:简单查询、单行修复、typo、阅读理解类问题。"
 ---
 
@@ -8,104 +8,40 @@ description: "SpecPower - 规范驱动的结构化开发工作流。遇到以下
 
 > **更新日志**: [CHANGELOG.md](CHANGELOG.md)
 
-SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行纪律，形成一套完整的软件开发方法论。核心理念：**规划深度匹配任务复杂度，质量门控保障关键节点，灵活迭代而非瀑布僵化**。
+SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行纪律,形成一套完整的软件开发方法论。核心理念:**规划深度匹配任务复杂度, 质量门控保障关键节点, 灵活迭代而非瀑布僵化**。
 
 ---
 
 ## 关键规则速查 (必须遵守)
 
-> 这些是 SpecPower 的铁律，违反任何一条都会导致流程失效。
+> SpecPower 的铁律。违反任一条都会导致流程失效。具体操作见对应 references。
 
-| 规则 | 适用模式 | 说明 |
-|------|---------|------|
-| **逐任务 TDD** | 所有 | RED → GREEN → REFACTOR，每个任务必须经过完整 TDD 循环 |
-| **逐任务自审** | 所有 | 每个任务完成后必须执行 30 秒自审（代码完整性 + 测试覆盖 + 安全基线） |
-| **逐任务提交** | Standard+ | 每个任务审查通过后必须立即 `git commit`，不允许"最后一起提交" |
-| **逐任务循环** | Standard+ | 每个任务必须完成完整 6 步循环后才能开始下一个任务 |
-| **禁止静默跳过** | 所有 | 任何"可选/触发时执行"的步骤（澄清/规范审查/代码审查等），跳过时必须显式声明原因，不允许沉默省略 |
-| **任务完成声明** | Standard+ | 每个任务在 TaskUpdate 标记 completed 之前，必须输出结构化的"任务完成声明"，列出每个检查点的执行/跳过状态 |
-| **验证必须运行** | 所有 | 不是"我认为测试应该通过"，而是"我运行了测试，结果如下" |
-| **提案确认门** | Standard+ | Phase 2 提案写完后必须呈现给用户并等待明确批准，用户批准前不得进入 Phase 4 |
-| **设计确认门** | Standard+ | Phase 4 设计写完后必须呈现给用户并等待明确批准，用户批准前不得进入 Phase 5 |
+| 规则 | 适用模式 | 权威出处 |
+|------|---------|---------|
+| **逐任务 TDD** | 所有 | `execution-guide.md` |
+| **逐任务 commit** | Standard+ | `phase-guide-execution.md` — Phase 6 提交门控 |
+| **提案确认门** | Standard+ | `phase-guide-planning.md` — Phase 2 |
+| **设计确认门** | Standard+ | `phase-guide-execution.md` — Phase 4 |
+| **禁止静默跳过** | 所有 | `skip-policy.md` |
+| **产物化审查** (v1.11.0) | Standard+ | `review-artifact-protocol.md` |
+| **验证必须运行** | 所有 | `review-verify.md` |
 
-**逐任务循环 6 步**：实现(TDD) → 自审 → 规范审查(触发时/声明跳过) → 代码审查(触发时/声明跳过) → 修复闭环 → 任务完成声明 + git commit
+**逐任务循环 6 步 (Standard+)**: 实现(TDD) → 自审 → 规范审查(触发/声明跳过) → 代码审查(触发/声明跳过) → 修复闭环 → `verify-task-reviews.sh` 校验 + git commit
 
-**为什么逐任务循环是铁律**：每个任务是一个独立的完整单元。跳过任何步骤都会导致质量问题累积，最终无法回滚。
-
----
-
-## 跳过规则（禁止静默跳过）
-
-> **任何"可跳过/触发时执行"的步骤，如果选择不做，必须在对话中显式声明原因。沉默 = 违规。**
-
-这是 v1.10.0 引入的硬性规则。过去"diff 低于阈值时跳过子agent审查"的默认行为被滥用为"什么都不声明就直接跳过"，导致审查在 Standard 模式下经常被静默省略。
-
-### 可跳过的步骤（跳过时必须声明原因）
-
-| 步骤 | 可跳过的前置条件 |
-|------|----------------|
-| Phase 1.5 需求澄清 | 用户需求已包含完整输入/输出/边界/约束 |
-| Phase 6 Step 3 规范符合审查 | Standard: diff < 100 行 且 无强制例外（安全/SQL/并发/金额/公开API） |
-| Phase 6 Step 4 代码质量审查 | Standard: diff < 20 行 且 无强制例外 |
-| Worktree 隔离 (Standard/Flow) | 非共享环境、单人短期任务 |
-
-### 任务完成声明模板（Standard+ 每个任务必须输出）
-
-```
-## Task N 完成声明
-- **TDD**: RED ✅ → GREEN ✅ → REFACTOR ✅
-- **自审**: ✅ （代码完整性/测试覆盖/安全基线）
-- **规范审查**: ✅ 已执行 | ⏭️ 跳过（原因：diff X 行 < 100，无强制例外）
-- **代码审查**: ✅ 已执行 | ⏭️ 跳过（原因：diff X 行 < 20，无强制例外）
-- **修复闭环**: 无问题 | 已修复 N 项 Critical/Important
-- **Commit**: `<hash>` — <type>(<scope>): <任务简述>
-```
-
-**只有输出了完成声明，才能调用 TaskUpdate 标记 completed。**
-
-### 有效跳过理由（✅ 示例）
-
-- ✅ "Task 1 diff 仅 8 行，修改 XML 属性，不涉及安全/SQL/并发/金额/公开API，跳过代码审查"
-- ✅ "Task 2 为纯数据类定义（15 行），无业务逻辑，跳过规范审查"
-- ✅ "用户需求已给出完整输入输出和 5 条约束，跳过 Phase 1.5 澄清"
-
-共同点：**具体、有数据（行数）、显式检查过强制例外**。
-
-### 无效跳过理由（❌ 黑名单）
-
-- ❌ "代码简单" / "明显正确" / "这里不需要审查" — 模糊，无法核实
-- ❌ 未说明 diff 行数
-- ❌ 未提及是否检查过强制例外
-- ❌ "最后一起审" / "等 Phase 7 全局审查再看" — 违反逐任务循环铁律
-- ❌ 沉默不声明 — **直接视为违规**
-
-### 违规后果
-
-如果检测到"未输出任务完成声明就标记 TaskUpdate completed"或"声明中含有无效理由"：
-
-1. 当前任务标记回退到 `in_progress`
-2. 从第一个无声明/违规声明的任务开始，重新补做缺失的审查步骤并逐个输出声明
-3. 之前打包的批量 commit 保留（不要 reset），但后续任务的 commit 必须逐任务独立
-
-**不要因为"麻烦"就绕过此规则。审查跳过的可追溯性是 SpecPower 相对于自由开发的核心价值之一。**
+每个审查步骤(执行或跳过)必须在 `reviews/` 产出对应 markdown 文件, 详见 `review-artifact-protocol.md`。跳过规则见 `skip-policy.md`, 任务完成声明模板见 `task-declaration.md`, 违规处置与规则退役机制见 `discipline-recovery.md`。
 
 ---
 
 ## 恢复进行中的变更
 
-如果你在新对话中打开项目，检测到有进行中的变更时：
+新对话进入项目时检测:
 
-1. **扫描变更目录**
-   ```bash
-   [ -d docs/spec-power/changes ] && find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
-   ```
-   **注意**: Flow 模式也创建变更目录，支持跨会话恢复。
+1. `find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;`
+2. 读取 `.specpower.yaml` 确认模式、工件状态、`tasks` 字段(Standard+)
+3. 询问用户: 继续 / 新变更 / 查看详情
+4. 切换 worktree(如有)→ 加载工件 → 从首个 `blocked`/`pending` 工件继续
 
-2. **读取变更状态** — 读取 `.specpower.yaml` 确认模式、工件状态，加载已完成工件。
-
-3. **向用户确认** — 列出变更名、模式、当前阶段，提供：继续 / 新变更 / 查看详情。
-
-4. **恢复上下文** — 切换到对应 worktree（如有）→ 加载工件 → 从第一个 `blocked` 或 `pending` 工件继续。
+> Flow 模式**不创建变更目录, 不产出审查文件, 不支持跨会话恢复**, 应在单次会话内完成。
 
 ---
 
@@ -114,11 +50,12 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 ### Flow 模式 (快速迭代)
 
 ```
-propose ──► execute ──► verify ──► (finish)
+propose (口头) ──► execute (TDD) ──► verify ──► (finish)
 ```
 
-**适用**: 单文件修改、小bug修复、简单配置变更、明确的小任务
-**判定**: 影响范围 ≤ 2个文件，无跨模块依赖，需求明确无歧义
+**适用**: 单文件修改、小 bug 修复、typo、配置变更
+**判定**: 影响 ≤ 2 文件, 无跨模块依赖, 需求明确
+**特点**: 不创建变更目录, 不产出审查文件, 5-15 分钟完成
 
 ### Standard 模式 (日常开发)
 
@@ -126,8 +63,9 @@ propose ──► execute ──► verify ──► (finish)
 clarify ──► propose ──► design ──► tasks ──► execute ──► review ──► verify ──► (finish)
 ```
 
-**适用**: 新功能开发、多文件修改、API变更、需要设计决策的任务
-**判定**: 影响 3+ 文件，涉及新接口或数据结构，需要权衡取舍
+**适用**: 新功能开发、多文件修改、API 变更
+**判定**: 影响 3+ 文件, 涉及新接口或数据结构
+**特点**: 创建变更目录, 逐任务产出 `reviews/`, 1-4 小时
 
 ### Strict 模式 (关键系统)
 
@@ -135,24 +73,24 @@ clarify ──► propose ──► design ──► tasks ──► execute ─
 explore ──► clarify ──► propose ──► specs ──► design ──► tasks ──► execute ──► review ──► verify ──► archive ──► finish
 ```
 
-**适用**: 跨模块重构、核心系统修改、团队协作、需要长期维护的功能
-**判定**: 影响多个模块，行为变更需要精确记录，多人参与或将来需要追溯
-**隔离要求**: 必须使用 Git Worktree 物理隔离
+**适用**: 跨模块重构、核心系统、团队协作
+**判定**: 影响多模块, 行为变更需精确记录, 多人参与
+**隔离**: 必须 Git Worktree 物理隔离
+**特点**: Delta 规范 + 多角色设计, 逐任务强制三层审查, 1-3 天
 
-### 如何推荐
+### 模式推荐
 
-**两阶段**: 初判 → 快速验证（边界时） → 确认
+**两阶段**: 初判 → 快速验证(边界情况)→ 确认
 
 **初判信号**:
-- Flow: "修改 X.ts"、"修 typo"、"改配置值"、"快速搞定"
-- Standard: "重构XX模块"、"添加功能"、涉及 API 和前端
-- Strict: "跨多个模块"、"核心系统"、"团队协作"、"仔细做"
+- Flow: "修改 X.ts" / "修 typo" / "改配置值" / "快速搞定"
+- Standard: "重构 XX 模块" / "添加功能" / 涉及 API 和前端
+- Strict: "跨多个模块" / "核心系统" / "团队协作" / "仔细做"
 
-**快速验证**（~30s，仅边界情况触发）: Glob 扫描影响范围、Grep 检查耦合度、检查测试覆盖。
+**快速验证**(~30s, 仅边界触发): Glob 扫影响范围 + Grep 耦合度 + 测试覆盖。
+**边界保守原则**: 疑似标准就选标准。"快速搞定"降一档, "仔细做"升一档。
 
-**边界保守原则**: Standard/Strict 边界疑似标准就选标准。用户说"快速搞定"降一档，"仔细做"升一档。
-
-> 详细模式评估流程见 `references/phase-guide-planning.md` - Phase 0
+> 详细模式评估见 `phase-guide-planning.md` — Phase 0
 
 ---
 
@@ -160,155 +98,52 @@ explore ──► clarify ──► propose ──► specs ──► design ─
 
 每个 Phase 进入前按指示 READ 对应参考文件。
 
-### 变更目录初始化 (模式确认后，所有模式必须执行)
+| Phase | 适用模式 | 入口文件 |
+|-------|---------|---------|
+| 变更目录初始化 | Standard+ | `phase-guide-planning.md` — 变更目录初始化 |
+| Worktree 隔离 | Standard+(推荐) / Strict(必需) | `phase-guide-planning.md` — Worktree 隔离 |
+| Phase 1: 探索 | Strict | `phase-guide-planning.md` — Phase 1 |
+| Phase 1.5: 需求澄清 | Standard+ | `phase-guide-planning.md` — Phase 1.5 |
+| Phase 2: 提案 | 所有 | `phase-guide-planning.md` — Phase 2 |
+| Phase 3: 规范 | Strict | `phase-guide-planning.md` — Phase 3 + `artifact-delta-specs.md` |
+| Phase 4: 设计 | Standard+ | `phase-guide-execution.md` — Phase 4 |
+| Phase 5: 任务分解 | Standard+ | `phase-guide-execution.md` — Phase 5 |
+| Phase 6: 执行与审查 | 所有 | `phase-guide-execution.md` — Phase 6 + `review-artifact-protocol.md` |
+| Phase 7: 全局审查 | Standard+ | `phase-guide-execution.md` — Phase 7 |
+| Phase 8: 验证 | 所有 | `phase-guide-execution.md` — Phase 8 |
+| Phase 9: 归档 | Strict | `phase-guide-closing.md` — Phase 9 |
+| Phase 10: 收尾 | 使用 Worktree 时 | `phase-guide-closing.md` — Phase 10 |
 
-模式确认后、进入实际工作 Phase 前，创建变更目录和 `.specpower.yaml` 元数据文件。**此步骤所有模式必须执行，不可跳过。**
-
-> READ `references/phase-guide-planning.md` - 变更目录初始化
-
-### Worktree 隔离 (可选，Standard/Strict 推荐)
-
-创建 Git Worktree 物理隔离环境。Claude Code 下先用 `git worktree add ... <base_branch>` 显式指定基准分支创建 worktree，再用 `EnterWorktree(path=...)` 进入以获得会话状态管理。**此步骤可选，但推荐用于 Standard 和 Strict 模式。**
-
-> READ `references/phase-guide-planning.md` - Worktree 隔离
-
-### Phase 1: 探索 (Strict only)
-
-理解全局上下文：项目扫描、现有模式、影响范围、约束发现。棕地项目涉及 MODIFIED/REMOVED 时按需生成局部基线规范。产出体现在提案 Context 部分。
-
-> READ `references/phase-guide-planning.md` - Phase 1
-
-### Phase 1.5: 需求澄清 (Standard+)
-
-对话澄清模糊需求：逐个提问 → 方向速览 → 范围确认。Standard 1-3 个关键问题；Strict 完整流程；需求已充分明确时可跳过，但跳过时必须在对话中向用户说明跳过原因，不得静默跳过。
-
-> READ `references/phase-guide-planning.md` - Phase 1.5
-
-### Phase 2: 提案 (All modes)
-
-明确动机、范围、影响。Flow: 口头30s。Standard+: 创建 `proposal.md`。
-
-> READ `references/phase-guide-planning.md` - Phase 2,proposal 模板见 `references/templates.md`
-
-### Phase 3: 规范 (Strict only)
-
-Delta 格式精确描述行为变更：ADDED/MODIFIED/REMOVED + RFC 2119 + GIVEN-WHEN-THEN 场景。
-
-> READ `references/phase-guide-planning.md` - Phase 3 和 `references/artifact-delta-specs.md`(Delta 格式 + 基线规范)
-
-### Phase 4: 设计 (Standard+)
-
-记录技术决策：现状、方案对比、决策理由、风险缓解。Strict 模式增加多角色并行方案对比（架构师/性能专家/资深开发）。
-
-> READ `references/phase-guide-execution.md` - Phase 4,design 与多角色模板见 `references/templates.md`
-
-### Phase 5: 任务分解 (Standard+)
-
-设计转化为可执行任务：5-15min 粒度、文件映射、依赖标注、TDD 步骤、验证命令。
-
-> READ `references/phase-guide-execution.md` - Phase 5
-
-### Phase 6: 执行与逐任务审查 (All modes)
-
-**核心规则：每个任务必须完成完整的 6 步循环后才能开始下一个任务。**
-
-```
-任务N开始
-    ↓
-Step 1: 实现（TDD: RED → 验证RED → GREEN → 验证GREEN → REFACTOR）
-    ↓
-Step 2: 自我审查（30秒清单：代码完整性 + 测试覆盖 + 安全基线）
-    ↓
-Step 3: 规范符合审查（Standard/Strict，触发时）
-    ↓
-Step 4: 代码质量审查（Standard+）
-    ↓
-Step 5: 修复→重审闭环（如有问题，最多3轮）
-    ↓
-Step 6: git commit → 验证commit存在 → 标记任务完成
-    ↓
-任务N+1开始（不能提前开始！）
-```
-
-> **禁止**：跳过任何步骤、批量实现后批量审查、批量提交。每个任务是独立的完整循环。
-
-> READ `references/phase-guide-execution.md` - Phase 6
-> TDD: `references/execution-guide.md` | 审查: `references/review-verify.md` | Flow: `references/flow-mode-guide.md`
-
-### Phase 7: 全局审查 (Standard+)
-
-跨任务一致性：接口对接、架构评估、交叉影响、风格统一。修复闭环最多2轮。
-
-> READ `references/phase-guide-execution.md` - Phase 7 和 `references/review-verify.md`
-
-### Phase 8: 验证 (All modes)
-
-提供可验证证据：运行不声称、完整不抽样、真实不模拟。证据分级 A/B/C。
-
-> READ `references/phase-guide-execution.md` - Phase 8 和 `references/review-verify.md`
-
-### Phase 9: 归档 (Strict only)
-
-保留上下文：合并 Delta 规范到主规范、移动变更目录到 archive。
-
-> READ `references/phase-guide-closing.md` - Phase 9
-
-### Phase 10: 收尾清理 (使用了 Worktree 时)
-
-闭合 Worktree 生命周期。4 选项：合并到主分支 / 推送创建 PR / 保留 / 废弃。
-
-> READ `references/phase-guide-closing.md` - Phase 10
+> Flow 模式只需 Phase 2 口头提案 + Phase 6 TDD + Phase 8 验证, 细节见 `flow-mode-guide.md`。
 
 ---
 
 ## Strict 模式完整性检查
 
-进入 Strict 模式后，必须通过以下检查点：
-
-- ✅ 变更目录初始化 (模式确认后，所有模式必须执行)
-- ✅ Worktree 隔离 (推荐，但可选)
-- ✅ 探索阶段 (Phase 1)
-- ✅ 规范阶段 (Phase 3): Delta 规范已生成
-- ✅ 设计阶段 (Phase 4): 技术方案确定
-- ✅ 全局审查 (Phase 7): 跨任务一致性
-- ✅ 归档阶段 (Phase 9): 上下文归档完成
-- ✅ 收尾清理 (Phase 10): Worktree 清理
+进入 Strict 必须通过: 变更目录初始化 ✅ | Worktree 隔离 ✅ | Phase 1 探索 ✅ | Phase 3 Delta 规范 ✅ | Phase 4 设计 ✅ | Phase 7 全局审查 ✅ | Phase 9 归档 ✅ | Phase 10 收尾 ✅
 
 ---
 
-## 快速参考
-
-### 变更目录结构
-
-```
-docs/spec-power/changes/<name>-YYYYMMDDHHMMSS/
-├── .specpower.yaml    (元数据+状态)
-├── proposal.md
-├── design.md
-├── tasks.md
-└── specs/             (Strict only)
-```
-
-> 详细变更目录管理、Worktree 隔离、平台适配见 `references/phase-guide-closing.md`
-> 工件 DAG 与 `.specpower.yaml` 格式见 `references/artifact-system.md`;工件模板(proposal/design/tasks/多角色)见 `references/templates.md`;Delta 格式与棕地基线规范(Strict)见 `references/artifact-delta-specs.md`
-> 阶段回退协议见 `references/phase-guide-execution.md`
-
-### 参考资源索引
+## 参考资源索引
 
 | 文件 | 内容 |
 |------|------|
-| `references/phase-guide-planning.md` | Phase 0~3 详细执行步骤 |
-| `references/phase-guide-execution.md` | Phase 4~8 详细执行步骤 |
+| `references/phase-guide-planning.md` | Phase 0~3 详细执行 |
+| `references/phase-guide-execution.md` | Phase 4~8 详细执行 |
 | `references/phase-guide-closing.md` | Phase 9~10 + 变更目录管理 + 平台适配 |
 | `references/artifact-system.md` | 工件 DAG、状态机、`.specpower.yaml` 格式 |
-| `references/templates.md` | proposal / design / 多角色 / tasks / behavior-changes 模板 |
-| `references/artifact-delta-specs.md` | Delta 规范 + RFC 2119 + 棕地基线(Strict 专用) |
-| `references/execution-guide.md` | TDD 流程、子agent调度、系统调试 |
+| `references/artifact-delta-specs.md` | Delta 规范 + RFC 2119 + 棕地基线 (Strict) |
+| `references/templates.md` | proposal / design / 多角色 / tasks 模板 |
+| `references/execution-guide.md` | TDD 流程、子 agent 调度、系统调试 |
 | `references/review-verify.md` | 审查方法论、验证清单、问题分级 |
+| **`references/review-artifact-protocol.md`** | **产物化审查协议 (v1.11.0)** |
+| **`references/skip-policy.md`** | **跳过规则与理由规范 (v1.11.0)** |
+| **`references/task-declaration.md`** | **任务完成声明模板 (v1.11.0)** |
+| **`references/discipline-recovery.md`** | **违规处置与规则退役 (v1.11.0)** |
 | `references/mindset.md` | 反合理化与验证纪律 |
 | `references/flow-mode-guide.md` | Flow 模式完整指南 |
 
-### 子agent提示
+### 子 agent 提示
 
 | 文件 | 角色 |
 |------|------|
@@ -318,3 +153,11 @@ docs/spec-power/changes/<name>-YYYYMMDDHHMMSS/
 | `agents/architect.md` | 架构师视角 (Strict) |
 | `agents/perf-expert.md` | 性能专家视角 (Strict) |
 | `agents/senior-dev.md` | 资深开发视角 (Strict) |
+
+### 辅助脚本
+
+| 脚本 | 用途 |
+|------|------|
+| **`scripts/verify-task-reviews.sh`** | **审查产物校验 (v1.11.0, Phase 6 Step 6 前调用)** |
+| `scripts/bump-version.sh` | 自动化版本更新 |
+| `scripts/link-skill.sh` | 软链接安装到各 IDE skill 目录 |

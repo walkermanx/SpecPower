@@ -125,3 +125,23 @@
 - 只审查规范覆盖，不评价代码质量（那是代码质量审查的职责）
 - 如果实现比规范要求的更好（更安全、更健壮），标注为"偏离(改进)"并说明
 - 如果规范本身有问题（矛盾、不完整），也应该指出
+
+## 产物要求 (v1.11.0)
+
+审查报告 **必须** 保存为文件, 由控制器落盘到 `docs/spec-power/changes/<name>/reviews/task-<N>-spec.md`, 文件首部加 frontmatter:
+
+```yaml
+---
+task: <N>
+type: spec-review
+reviewer: spec-reviewer
+timestamp: <ISO8601>
+diff_lines: <staged diff 行数>
+forced_exception: <true | false>
+verdict: <pass | fail | pass-with-concerns>
+---
+```
+
+frontmatter 下紧接输出格式章节规定的 markdown 内容。详细协议见 `references/review-artifact-protocol.md`。
+
+> 输出到对话窗口只是给控制器看的摘要, 产物文件才是审查的权威记录。

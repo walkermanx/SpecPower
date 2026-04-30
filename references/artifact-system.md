@@ -70,6 +70,17 @@ artifacts:
   review: blocked
   verification: blocked
   finish: blocked
+tasks:                        # v1.11.0 新增: 逐任务审查产物索引 (Standard+)
+  - id: 1
+    status: completed         # pending | in_progress | completed
+    reviews:
+      self: reviews/task-1-self.md
+      spec: reviews/task-1-spec-skip.md    # 执行时是 -spec.md, 跳过时是 -spec-skip.md
+      code: reviews/task-1-code.md
+    commit: a3f2b1c            # 对应的 git commit hash
+  - id: 2
+    status: in_progress
+    reviews: {}                # 尚未产出, 任务未完成
 ```
 
 ### Strict 模式示例
@@ -92,9 +103,20 @@ artifacts:
   verification: blocked
   archive: blocked
   finish: blocked
+tasks:                        # v1.11.0 新增, Strict 逐任务触发, reviews 字段必填
+  - id: 1
+    status: completed
+    reviews:
+      self: reviews/task-1-self.md
+      spec: reviews/task-1-spec.md        # Strict 逐任务触发, 不会出现 -spec-skip
+      code: reviews/task-1-code.md
+    commit: 7b9e2d1
 ```
 
-Flow 模式不创建变更目录,不生成 `.specpower.yaml`,因此 Flow 任务不支持跨会话恢复,应在单次会话内完成。
+Flow 模式**不创建变更目录, 不生成 `.specpower.yaml`, 不产出 `reviews/`**。Flow 任务不支持跨会话恢复, 应在单次会话内完成。
+
+> 审查产物的文件格式、frontmatter 必填字段、commit trailer 约定见 `review-artifact-protocol.md`。
+> Pre-commit 校验脚本 `scripts/verify-task-reviews.sh` 按此字段验证产物齐全性。
 
 ---
 

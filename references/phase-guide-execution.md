@@ -322,11 +322,27 @@ Task 3 ──► Task 4
 
 | 模式 | 执行方式 | 审查方式 |
 |------|---------|---------|
-| **Flow** | 直接 TDD 执行 | 自我审查（30秒清单）即可，无需子agent审查 |
-| **Standard** | 逐任务 TDD + 逐任务审查 | 自我审查 + 代码质量审查（子agent）+ 规范符合审查（触发时，基于 behavior-changes.md） |
-| **Strict** | 逐任务 TDD + 逐任务审查 | 自我审查 + 规范符合审查 + 代码质量审查（子agent） |
+| **Flow** | 直接 TDD 执行 | 自我审查（30秒清单）即可，无需子agent审查；不产出审查文件 |
+| **Standard** | 逐任务 TDD + 逐任务审查 | 自我审查 + 代码质量审查（子agent）+ 规范符合审查（触发时，基于 behavior-changes.md）；**每次审查(含跳过)必须落盘到 `reviews/`** |
+| **Strict** | 逐任务 TDD + 逐任务审查 | 自我审查 + 规范符合审查 + 代码质量审查（子agent）；**每次审查(含跳过)必须落盘到 `reviews/`** |
 
 Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 Standard+ 模式。
+
+### 产物化审查协议 (v1.11.0 硬规则, Standard+)
+
+> **审查必须留下 filesystem 产物, 不仅对话声明。**
+
+每次 Phase 6 审查执行 **或** 跳过, 都必须在 `docs/spec-power/changes/<name>/reviews/` 生成对应 markdown 文件 (`task-N-self.md`、`task-N-spec.md`|`task-N-spec-skip.md`、`task-N-code.md`|`task-N-code-skip.md`)。
+
+完整协议 — 含目录结构、文件模板、frontmatter 必填字段、commit trailer 约定 — 见 `review-artifact-protocol.md`。
+
+**控制器在 Phase 6 Step 6 `git commit` 前 MUST 调用**:
+
+```bash
+scripts/verify-task-reviews.sh <change-dir> <task-id>
+```
+
+校验失败 = 拒绝 commit, 补齐审查产物后重试。该脚本也可安装为 git pre-commit hook 实现硬强制。
 
 ### 子agent审查触发阈值（权威表）
 
@@ -390,26 +406,30 @@ Flow 模式的执行细节见 `flow-mode-guide.md`，以下内容主要面向 St
 ┌─────────────────────────────────────────────────────────────────┐
 │  Step 1: 实现（TDD: RED → 验证RED → GREEN → 验证GREEN → REFACTOR） │
 │       ↓                                                          │
-│  Step 2: 自我审查（30秒）                                          │
+│  Step 2: 自我审查（30秒）→ 写入 reviews/task-N-self.md (Std+)       │
 │       代码完整性 + 测试覆盖 + 安全基线                                │
 │       ↓                                                          │
 │  Step 3: 规范符合审查（Standard/Strict，子agent，触发时/声明跳过）        │
-│       Strict: 对比 specs/ | Standard: 对比 behavior-changes.md       │
+│       → 写入 task-N-spec.md 或 task-N-spec-skip.md (Std+ 必留产物)   │
 │       ↓                                                          │
 │  Step 4: 代码质量审查（Standard+，子agent，触发时/声明跳过）             │
-│       架构、质量、安全、可维护性                                       │
+│       → 写入 task-N-code.md 或 task-N-code-skip.md (Std+ 必留产物)   │
 │       ↓                                                          │
 │  Step 5: 修复→重审闭环（如有问题）                                    │
 │       Critical/Important → 修复 → 重新审查 → 循环（最多3轮）          │
 │       Suggestion → 记录，不阻塞                                     │
 │       ↓                                                          │
-│  Step 5.5: 输出任务完成声明 (v1.10.0 强制)                            │
-│       结构化声明每个步骤的执行/跳过状态；跳过必须具体说明原因              │
+│  Step 5.5: 对话中输出任务完成声明 (摘要) + 更新 .specpower.yaml        │
+│       摘要模板见 references/task-declaration.md                      │
+│       产物(上面 Step 2/3/4 的文件)才是权威, 声明只是人机沟通摘要         │
 │       ↓                                                          │
-│  Step 6: 审查通过 → 控制器执行 git commit（见提交门控）→ 验证 commit   │
-│       → TaskUpdate 标记完成                                         │
+│  Step 6: 控制器运行 scripts/verify-task-reviews.sh <dir> N            │
+│       校验通过 → git commit (消息含 Reviews: trailer)                 │
+│       → 验证 commit 存在 → TaskUpdate 标记完成                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> 产物文件的内容格式、frontmatter 必填字段、跨会话恢复规则均见 `review-artifact-protocol.md`。
 
 ### TDD铁律
 
@@ -528,16 +548,32 @@ Dispatch `code-reviewer` 子agent：
 **执行流程**:
 
 ```
-任务完成 → 自审通过 → [代码审查通过] → git commit → 验证 commit 存在 → 标记任务完成 → 开始下一个任务
+任务完成 → 自审通过 + self.md → [审查/跳过产物齐全] → verify-task-reviews.sh 通过 → git commit → 验证 commit → 标记完成 → 下一任务
 ```
+
+> **产物校验失败时 MUST 拒绝提交**。补齐缺失的 `reviews/task-N-*.md` 文件后重新运行校验脚本, 通过后再 commit。
 
 **子agent模式（Claude Code）**:
 
-子agent（实现者）不负责 commit——它只负责实现、自审和报告。控制器在上表所列审查全部通过后，根据实现者报告的文件列表执行：
+子agent（实现者）不负责 commit——它只负责实现、自审和报告。控制器在上表所列审查全部通过、审查产物齐全后，根据实现者报告的文件列表执行：
 
 ```bash
-git add <实现者报告中 Created + Modified + Test 的文件>
-git commit -m "<type>(<scope>): <任务简述>"
+# 1. 校验 reviews/ 产物齐全 (Standard+ 必需)
+scripts/verify-task-reviews.sh docs/spec-power/changes/<name>-<ts> <task-id>
+
+# 2. 添加代码文件 + 审查产物
+git add <实现者报告中 Created + Modified + Test 的文件> \
+        docs/spec-power/changes/<name>-<ts>/reviews/task-<N>-*.md \
+        docs/spec-power/changes/<name>-<ts>/.specpower.yaml
+
+# 3. commit, 消息含 Reviews: trailer (见 review-artifact-protocol.md)
+git commit -m "$(cat <<EOF
+<type>(<scope>): <任务简述>
+
+Task: <N>
+Reviews: reviews/task-<N>-self.md, reviews/task-<N>-spec(-skip).md, reviews/task-<N>-code(-skip).md
+EOF
+)"
 ```
 
 **验证 commit 存在**:

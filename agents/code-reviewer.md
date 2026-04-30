@@ -108,3 +108,23 @@
 - 不要建议添加当前不需要的功能（YAGNI）
 - 不要建议添加文档/注释到未修改的代码
 - 如果实现者做了不寻常但有效的选择，先理解再评价
+
+## 产物要求 (v1.11.0)
+
+审查报告 **必须** 保存为文件, 由控制器落盘到 `docs/spec-power/changes/<name>/reviews/task-<N>-code.md`, 文件首部加 frontmatter:
+
+```yaml
+---
+task: <N>
+type: code-review
+reviewer: code-reviewer
+timestamp: <ISO8601>
+diff_lines: <staged diff 行数>
+forced_exception: <true | false>
+verdict: <pass | fail | pass-with-concerns>
+---
+```
+
+frontmatter 下紧接输出格式章节规定的 markdown 内容。详细协议见 `references/review-artifact-protocol.md`。
+
+> 输出到对话窗口只是给控制器看的摘要, 产物文件才是审查的权威记录。
