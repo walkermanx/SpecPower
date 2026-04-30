@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "我们的 Express 后端有个 bug，用户登录时如果密码包含特殊字符（比如 #、& 等），会返回 500 错误。看了下日志是 bcrypt.compare 报错了，好像是 body-parser 没正确处理 URL 编码的问题。帮我修一下。",
-      "expected_output": "应推荐 Flow 模式。快速写一段提案确认问题范围，然后用 TDD 方式修复（先写复现 bug 的测试，再修复），最后验证。不应该过度规划。",
+      "expected_output": "应推荐 Flow 模式。快速写一段提案确认问题范围，然后用 TDD 方式修复（先写复现 bug 的测试，再修复），最后验证。不应该过度规划。v1.11.0: 不创建变更目录、不产出 .specpower.yaml、不产出 reviews/ 审查文件、不输出结构化完成声明。",
       "files": [],
       "assertions": [
         {
@@ -26,13 +26,29 @@
         {
           "name": "修复了根本原因",
           "check": "代码修改涉及 body-parser 配置或 bcrypt 异常处理"
+        },
+        {
+          "name": "[v1.11.0] Flow 未创建变更目录",
+          "check": "没有在 docs/spec-power/changes/ 下创建任何子目录，Flow 模式超轻量化要求"
+        },
+        {
+          "name": "[v1.11.0] Flow 未生成 .specpower.yaml",
+          "check": "没有创建 .specpower.yaml 文件，Flow 不产出元数据"
+        },
+        {
+          "name": "[v1.11.0] Flow 未生成 reviews/ 目录",
+          "check": "没有创建 reviews/ 目录或任何 task-N-*.md 审查文件"
+        },
+        {
+          "name": "[v1.11.0] Flow 未输出结构化完成声明",
+          "check": "输出中没有出现「任务完成声明」标题块或结构化的 TDD / Reviews 字段列表"
         }
       ]
     },
     {
       "id": 2,
       "prompt": "我们的 React + Node.js 电商项目需要加一个商品评价系统。用户购买商品后可以评分（1-5星）和写文字评价，其他用户可以查看评价列表和平均分。评价需要审核后才能显示。需要前后端都做。",
-      "expected_output": "应推荐 Standard 模式。先写提案（功能范围、影响分析），然后做技术设计（API设计、数据模型、前后端交互），分解任务（后端API、数据库、前端组件、测试），用子agent并行执行，最后代码审查和验证。",
+      "expected_output": "应推荐 Standard 模式。先写提案（功能范围、影响分析），然后做技术设计（API设计、数据模型、前后端交互），分解任务（后端API、数据库、前端组件、测试），用子agent并行执行。v1.11.0: 每个任务执行后必须在 reviews/ 目录产出 task-N-self.md + task-N-spec(或skip).md + task-N-code(或skip).md，git commit 消息包含 Reviews: trailer。",
       "files": [],
       "assertions": [
         {
@@ -62,6 +78,22 @@
         {
           "name": "提供了前后端代码",
           "check": "同时有后端代码（API/控制器）和前端代码（React组件）"
+        },
+        {
+          "name": "[v1.11.0] 产出了自审文件",
+          "check": "存在 reviews/task-1-self.md（或 task-2-self.md 等），且含有 YAML frontmatter（task/type/timestamp/diff_lines 字段）"
+        },
+        {
+          "name": "[v1.11.0] 产出了规范审查或跳过声明",
+          "check": "每个已执行任务的 reviews/ 目录中存在 task-N-spec.md 或 task-N-spec-skip.md 之一，两者不同时存在"
+        },
+        {
+          "name": "[v1.11.0] 产出了代码审查或跳过声明",
+          "check": "每个已执行任务的 reviews/ 目录中存在 task-N-code.md 或 task-N-code-skip.md 之一，两者不同时存在"
+        },
+        {
+          "name": "[v1.11.0] commit 消息含 Reviews trailer",
+          "check": "任意一个逐任务 commit 的消息中包含 'Reviews:' 字段，引用了对应的审查产物路径"
         }
       ]
     },
@@ -110,6 +142,78 @@
         {
           "name": "提供了归档计划",
           "check": "有归档计划或说明了如何保存上下文"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "帮我在 config/settings.json 里加一个新的超时配置项 request_timeout_ms，默认值 5000。这是个非常简单的配置修改，只改一个文件。",
+      "expected_output": "应推荐 Flow 模式。v1.11.0 超轻量化：直接修改配置文件，不创建变更目录，不生成 .specpower.yaml，不产出 reviews/ 审查文件，不输出结构化完成声明。配置修改可豁免 TDD，用运行系统确认配置生效即可。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "推荐了 Flow 模式",
+          "check": "输出中明确提到使用 Flow 模式"
+        },
+        {
+          "name": "[v1.11.0] 无 changes 目录产出",
+          "check": "执行完毕后 docs/spec-power/changes/ 下未新建任何子目录，或该路径根本不存在"
+        },
+        {
+          "name": "[v1.11.0] 无 reviews 文件产出",
+          "check": "没有任何 reviews/task-*-*.md 文件被创建"
+        },
+        {
+          "name": "[v1.11.0] 无结构化声明",
+          "check": "输出中没有标题为「任务完成声明」的 markdown 块，没有带 TDD:/Reviews:/Commit: 字段的结构化文本块"
+        },
+        {
+          "name": "完成了配置修改",
+          "check": "config/settings.json 中添加了 request_timeout_ms 字段，值为 5000"
+        },
+        {
+          "name": "有验证步骤",
+          "check": "有运行系统确认配置生效、或执行测试通过的验证，豁免 TDD 不等于无验证"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "用 Standard 模式给 user 表添加 last_login_at 字段。改动涉及一个 migration 文件和 user model，预计 diff 约 15 行。规范审查我觉得可以跳过（纯新增字段，无行为变更），但代码审查必须做。请演示 v1.11.0 的正确跳过流程：生成跳过声明产物，再执行代码审查产物，最后校验脚本通过。",
+      "expected_output": "Standard 模式下演示正确的审查跳过流程：1) 生成 reviews/task-1-self.md（自审，不可跳过）；2) 生成 reviews/task-1-spec-skip.md（规范审查跳过声明，含 diff_lines/threshold/forced_exception_check frontmatter）；3) 执行代码审查并生成 reviews/task-1-code.md（含 task/type/reviewer/timestamp/verdict frontmatter）；4) verify-task-reviews.sh 校验通过，exit 0。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "[v1.11.0] 自审产物存在",
+          "check": "存在 reviews/task-1-self.md，且含有效 YAML frontmatter（task/type/timestamp/diff_lines 字段）"
+        },
+        {
+          "name": "[v1.11.0] 跳过声明产物存在",
+          "check": "存在 reviews/task-1-spec-skip.md 文件（而非 task-1-spec.md），代表规范审查被跳过"
+        },
+        {
+          "name": "[v1.11.0] 跳过声明含 diff_lines 字段",
+          "check": "spec-skip.md 的 frontmatter 中 diff_lines 字段存在且为数字，不能缺失或为空"
+        },
+        {
+          "name": "[v1.11.0] 跳过声明含 forced_exception_check 字段",
+          "check": "spec-skip.md 的 frontmatter 中 forced_exception_check 字段存在（值为 none/无 或具体条目说明）"
+        },
+        {
+          "name": "[v1.11.0] 跳过声明含 threshold 字段",
+          "check": "spec-skip.md 的 frontmatter 中 threshold 字段存在，说明触发跳过的行数阈值"
+        },
+        {
+          "name": "[v1.11.0] 代码审查产物存在",
+          "check": "存在 reviews/task-1-code.md，且含有效 frontmatter（task/type/reviewer/timestamp/verdict 字段）"
+        },
+        {
+          "name": "[v1.11.0] spec 和 spec-skip 不同时存在",
+          "check": "task-1-spec.md 和 task-1-spec-skip.md 不同时存在，二者互斥"
+        },
+        {
+          "name": "[v1.11.0] 校验脚本通过",
+          "check": "verify-task-reviews.sh 对 task-1 的输出包含「通过」或全部产物齐全的提示，且没有「错误」或「拒绝 commit」提示"
         }
       ]
     }

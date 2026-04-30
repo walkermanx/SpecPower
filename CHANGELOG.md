@@ -9,6 +9,86 @@
 
 ---
 
+## [1.11.0] - 2026-04-30
+
+### 背景
+
+基于 v1.10.0 后的流程评估,识别出连续 v1.8 → v1.10 的迭代都在用 "加规则、加声明、加违规处置" 补救前一条规则被绕开,走向 prompt-level 的军备竞赛,收益递减。v1.11.0 从 prompt 层转向 **工具层强制 + 规则层瘦身 + 模式分层** 的组合:
+
+- **工具强制**: 审查必须落盘, git commit 前校验产物齐全性
+- **规则瘦身**: SKILL.md 精简, 规则下沉到按需加载的 references
+- **模式分层**: Flow 真正超轻量, 不与 Standard 混淆纪律
+
+### 新增 ✨ (方向 1: 产物化审查 + 工具化校验)
+
+- **审查产物化协议** (`references/review-artifact-protocol.md`)
+  - Phase 6 Step 2/3/4 的每次审查(含跳过)必须落盘到 `docs/spec-power/changes/<name>/reviews/`
+  - 文件命名: `task-N-self.md` / `task-N-spec.md` / `task-N-spec-skip.md` / `task-N-code.md` / `task-N-code-skip.md` / `global-review.md`
+  - 每个文件首部 YAML frontmatter 含必填字段: `task`, `type`, `timestamp`, `diff_lines`, `verdict` / `forced_exception_check`
+  - commit 消息必须含 `Task: N` 和 `Reviews: <paths>` trailer, 可被 `git log --grep="Reviews:"` 批量查询
+
+- **pre-commit 校验脚本** (`scripts/verify-task-reviews.sh`)
+  - Phase 6 Step 6 `git commit` 前 MUST 调用, 校验 `reviews/` 产物齐全性
+  - 校验 frontmatter 必填字段完整、跳过声明中 `diff_lines` 与实际 staged diff 偏差 ≤ 20%
+  - 支持 `auto` 模式自动从 `.specpower.yaml` 推断变更目录和任务 ID
+  - 可安装为 git pre-commit hook 实现硬强制
+
+- **`.specpower.yaml` 扩展 `tasks[]` 字段**
+  - 记录每个任务的 `status`、`reviews` 产物路径、`commit` hash
+  - 跨会话恢复时可据此重建上下文
+
+- **子 agent 审查输出改为落盘格式**
+  - `agents/spec-reviewer.md` 和 `agents/code-reviewer.md` 新增 "产物要求" 章节
+  - 审查报告必须含 frontmatter, 由控制器落盘到 `reviews/task-N-{spec|code}.md`
+  - 对话输出降级为摘要, 产物文件成为权威记录
+
+### 重构 🔨 (方向 4: SKILL.md 瘦身 + 规则分层)
+
+- **SKILL.md 从 321 行压至 163 行** (减 49%)
+  - 保留: 关键规则速查表、三档定义、Phase 路由、参考索引
+  - 移除并下沉: 跳过规则详表、有效/无效理由示例、任务完成声明模板、违规处置流程
+  - 消除 prompt-level 规则膨胀, 让每次 skill 进入时的纪律上下文开销稳定
+
+- **新增 4 个按需加载的 references**:
+  - `references/skip-policy.md` — 跳过规则表 + 有效/无效理由规范
+  - `references/task-declaration.md` — 任务完成声明模板 (精简版 + v1.10 兼容)
+  - `references/discipline-recovery.md` — 违规处置流程 + **规则退役机制**
+  - `references/review-artifact-protocol.md` — 产物化审查协议
+
+- **规则退役机制**
+  - 每次 minor 版本发布审视上一版本新增规则, 若已被工具化机制覆盖 → 删除
+  - v1.11.0 已退役/降级: "必须对话输出声明" / "跳过理由含行数+强制例外结论" / "违规处置流程细节"
+  - 保留的理念级铁律 (TDD / 逐任务 commit / 确认门 / 禁止静默跳过 / 验证必须运行) 仍在 SKILL.md
+
+### 新增 ✨ (方向 3: Flow 模式超轻量化)
+
+- **Flow 模式真正超轻量化** (`references/flow-mode-guide.md` 顶部新增 v1.11.0 强化块)
+  - Flow ❌ 不创建 变更目录 `docs/spec-power/changes/<name>/`
+  - Flow ❌ 不产出 `.specpower.yaml` 元数据
+  - Flow ❌ 不产出 `reviews/` 审查文件 / `-skip.md` 声明
+  - Flow ❌ 不输出 结构化任务完成声明
+  - Flow ✅ 只要 口头提案 (1 句话) + TDD 循环 + `git commit`
+
+- **修复 v1.10.0 SKILL.md 与 flow-mode-guide.md 长期不一致**
+  - v1.10.0 SKILL.md 第 102 行 "Flow 模式也创建变更目录, 支持跨会话恢复" 与 flow-mode-guide.md 第 284 行 "Flow 模式不创建变更目录, 不支持跨会话恢复" 直接矛盾
+  - v1.11.0 统一为 "Flow 不创建变更目录, 不支持跨会话恢复"
+  - `references/phase-guide-planning.md` 变更目录初始化章节从 "所有模式必须执行" 改为 "Standard+ 必须执行, Flow 跳过"
+
+### 设计哲学
+
+**规则 → 工具**: 纪律不能永远叠加在 prompt 里,LLM 始终能编出看似合理的理由绕过。v1.11.0 把核心纪律落实到 filesystem(reviews 目录)、script(verify-task-reviews.sh)、git trailer 三层不可伪造的证据,prompt 层可以反过来瘦身。
+
+**纪律匹配规模**: Flow 是 5-15 分钟的任务,用 Standard 级别的审查产物要求 = 用户会绕开 Flow 直接 hack。v1.11.0 让三档模式在纪律重量上形成真实梯度: Flow 零架子 / Standard 产物化审查 / Strict 逐任务三层审查 + Delta 规范。
+
+### 向前兼容性
+
+v1.11.0 过渡期内兼容 v1.10.0 的对话声明机制:
+- 旧版本 changes 目录 (无 `reviews/`) 仍可推进, 但会收到升级警告
+- `.specpower.yaml` 缺少 `tasks` 字段时, `verify-task-reviews.sh` 降级为对话声明判定
+- **从 v1.12.0 起产物化为硬要求**, 不再支持对话声明作为唯一证据
+
+---
+
 ## [1.10.0] - 2026-04-29
 
 ### 新增 ✨

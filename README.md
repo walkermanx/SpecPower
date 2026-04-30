@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.10.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.11.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -19,6 +19,9 @@
 - 📘 **Flow 模式完整指南** — 轻量任务专属文档，3 个端到端示例
 - 🔍 **多层质量审查** — 自审 + 代码审查 + 规范审查，层层把关
 - 📝 **禁止静默跳过**（v1.10.0）— 审查跳过必须显式声明原因，任务完成声明作为审计留痕
+- 🗂️ **产物化审查**（v1.11.0 ⭐）— 每次审查(含跳过)必须落盘到 `reviews/`,`verify-task-reviews.sh` 校验产物齐全性,commit 前硬强制
+- 🪶 **Flow 模式超轻量**（v1.11.0 ⭐）— Flow 不再创建变更目录/审查文件,只要口头提案 + TDD + commit,避免纪律过重被用户绕开
+- 📑 **SKILL.md 规则分层瘦身**（v1.11.0 ⭐）— 主文件从 321 行压至 163 行,跳过规则/声明模板/违规处置下沉到按需加载的 references
 - 🚀 **子 Agent 并行执行** — 独立任务并行处理，大幅提升效率
 - 📋 **完整工件追溯** — 从提案到归档，每个决策都有据可查
 - 🔒 **Git Worktree 隔离** — 关键变更物理隔离，保障主分支稳定
@@ -113,7 +116,9 @@ SpecPower 采用**两阶段推荐**，避免在信息不足时过早决策：
 
 **适用场景**: 单文件修改、小 bug 修复、简单配置
 
-**流程**: 提案 → 执行 → 验证
+**流程**: 口头提案 → TDD 执行 → 验证
+
+**特点（v1.11.0 ⭐）**: 真正超轻量——**不创建** 变更目录、**不产出** `.specpower.yaml`、**不产出** `reviews/` 审查文件、**不输出** 结构化完成声明。只要 "一句话说清改什么" + TDD + `git commit`。
 
 **示例任务**:
 - 修复按钮点击事件的 typo
@@ -270,6 +275,10 @@ SpecPower 强制执行测试驱动开发:
 - **[references/artifact-delta-specs.md](references/artifact-delta-specs.md)** — Delta 规范 + RFC 2119 + 棕地基线(Strict 专用)
 - **[references/execution-guide.md](references/execution-guide.md)** — TDD 详细流程、子 agent 调度
 - **[references/review-verify.md](references/review-verify.md)** — 审查方法论、验证清单
+- **[references/review-artifact-protocol.md](references/review-artifact-protocol.md)** ⭐ v1.11.0 — 产物化审查协议 (目录结构 / 文件格式 / commit trailer)
+- **[references/skip-policy.md](references/skip-policy.md)** ⭐ v1.11.0 — 跳过规则与有效/无效理由规范
+- **[references/task-declaration.md](references/task-declaration.md)** ⭐ v1.11.0 — 任务完成声明模板 (精简版 + v1.10 兼容)
+- **[references/discipline-recovery.md](references/discipline-recovery.md)** ⭐ v1.11.0 — 违规处置流程 + 规则退役机制
 - **[references/mindset.md](references/mindset.md)** — 反理性化、验证纪律与最佳实践
 
 ### 子 Agent 提示
