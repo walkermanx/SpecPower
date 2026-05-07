@@ -67,23 +67,30 @@ find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-p
 
 ---
 
-## 关键规则速查 (必须遵守)
+## 关键规则速查 (铁律 / MUST)
 
-> SpecPower 的铁律。违反任一条都会导致流程失效。具体操作见对应 references。
+> 以下每一条都是**禁止性约束**, 违反任一条 = 违规, **立即按 `references/discipline-recovery.md` 处置** (停止推进 → 回退状态 → 补齐产物/重做)。
+> 禁止自行判断 "这条规则本次可跳过" — 规则退役必须走 `discipline-recovery.md` 的正式流程。
 
-| 规则 | 适用模式 | 权威出处 |
-|------|---------|---------|
-| **逐任务 TDD** | 所有 | `execution-guide.md` |
-| **逐任务 commit** | Standard+ | `phase-guide-execution.md` — Phase 6 提交门控 |
-| **提案确认门** | Standard+ | `phase-guide-planning.md` — Phase 2 |
-| **设计确认门** | Standard+ | `phase-guide-execution.md` — Phase 4 |
-| **禁止静默跳过** | 所有 | `skip-policy.md` |
-| **产物化审查** (v1.11.0) | Standard+ | `review-artifact-protocol.md` |
-| **验证必须运行** | 所有 | `review-verify.md` |
+| # | 铁律 (禁止性) | 适用 | 违规即时动作 |
+|---|--------------|------|-------------|
+| R1 | **禁止**未写失败测试就改动含逻辑的代码 (TDD) | 所有 | 撤回改动 → 补失败测试 → 重新实现,见 `execution-guide.md` |
+| R2 | **禁止**单个 commit 跨越 2+ 任务 (逐任务 commit) | Standard+ | 回退 HEAD, 按任务拆分重提, 见 `phase-guide-execution.md` — Phase 6 |
+| R3 | **禁止**跳过 `proposal.md` 落盘直接进 Phase 4 (提案确认门) | Standard+ | 停止推进, 先落盘 proposal.md + 用户确认, 见 `phase-guide-planning.md` — Phase 2 |
+| R4 | **禁止**跳过 `design.md` 落盘直接进 Phase 5 (设计确认门) | Standard+ | 停止推进, 先落盘 design.md + 用户确认, 见 `phase-guide-execution.md` — Phase 4 |
+| R5 | **禁止**静默跳过任何 "触发/声明跳过" 步骤 (必须显式声明或产出) | 所有 | 回退任务状态, 补 `-skip.md` 声明或执行审查, 见 `skip-policy.md` |
+| R6 | **禁止** `reviews/task-N-*.md` 未落盘就 `git commit` (产物化审查) | Standard+ | `git reset` 到 commit 前, 运行 `scripts/verify-task-reviews.sh` 补产物, 见 `review-artifact-protocol.md` |
+| R7 | **禁止**未运行验证 (Phase 8) 就报告任务完成 | 所有 | 回滚完成声明, 执行验证清单, 见 `review-verify.md` |
+| R8 | **禁止**用 `TaskCreate` 工具代替 Standard+ 的 `tasks.md` 落盘 | Standard+ | 补写 `tasks.md`, `TaskCreate` 仅作会话级追踪, 见下文 "任务管理职责划分" |
+| R9 | **禁止**模式判定只给结论不给推理 (判定可见性) | 所有 | 按 "模式判定输出格式" 重写推理并展示给用户 |
 
 **逐任务循环 6 步 (Standard+)**: 实现(TDD) → 自审 → 规范审查(触发/声明跳过) → 代码审查(触发/声明跳过) → 修复闭环 → `verify-task-reviews.sh` 校验 + git commit
 
-每个审查步骤(执行或跳过)必须在 `reviews/` 产出对应 markdown 文件, 详见 `review-artifact-protocol.md`。跳过规则见 `skip-policy.md`, 任务完成声明模板见 `task-declaration.md`, 违规处置与规则退役机制见 `discipline-recovery.md`。
+每个审查步骤(执行或跳过)必须在 `reviews/` 产出对应 markdown 文件。具体机制:
+- 产物化审查协议: `references/review-artifact-protocol.md`
+- 跳过规则与有效理由: `references/skip-policy.md`
+- 任务完成声明模板: `references/task-declaration.md`
+- **违规处置与规则退役**: `references/discipline-recovery.md` ← 触发任一铁律违规必读
 
 ---
 
