@@ -94,6 +94,38 @@ find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-p
 
 ---
 
+## 任务管理职责划分 (`tasks.md` vs `TaskCreate`)
+
+> 两者**不是替代关系**, 是**互补关系**。混用不当 → 直接违反 R8, 按 `discipline-recovery.md` 处置。
+
+| 维度 | `tasks.md` (落盘文件) | `TaskCreate` (会话工具) |
+|------|----------------------|------------------------|
+| **性质** | 产物 / 权威记录 | 会话级 UI 辅助 |
+| **生命周期** | 跨会话持久, 可被 git 追溯、别人 clone 后看见 | 会话结束即丢失 |
+| **Standard+ 是否必需** | ✅ **MUST** — 未落盘视为违规 R8 | ⚠️ 可选, 仅作进度可视化 |
+| **Flow 是否必需** | ❌ 不需要 | ⚠️ 可选 |
+| **更新方式** | Edit 工具直接改文件内容 | `TaskUpdate` 改状态 |
+| **与 `.specpower.yaml` 关系** | `tasks[]` 字段引用 `tasks.md` 中的任务编号 | 不写入 yaml |
+| **驱动 Phase 6 循环** | ✅ 是权威任务清单 | ❌ 仅镜像 tasks.md 的状态 |
+
+### 正确用法
+
+**Standard+**:
+1. Phase 5 产出 `tasks.md` (权威) → 同时用 `TaskCreate` 把每个任务在会话中登记一份 (镜像)
+2. Phase 6 每启动一个任务: `TaskUpdate` → `in_progress`
+3. 任务完成: 先更新 `tasks.md` 勾选 + commit, **再** `TaskUpdate` → `completed`
+4. **`tasks.md` 是真相之源**, `TaskCreate` 状态不一致时以文件为准
+
+**Flow**: 任务在对话里即可, 无需 tasks.md;是否用 TaskCreate 自行决定。
+
+### 反模式
+
+- ❌ Standard 模式只用 `TaskCreate` 不产出 `tasks.md` — 违反 R8
+- ❌ 先 `TaskCreate` 建立一堆任务, 再补写 `tasks.md` 导致编号不一致
+- ❌ `tasks.md` 和 `TaskUpdate` 状态长期不一致 (单向同步丢失)
+
+---
+
 ## 恢复进行中的变更
 
 新对话进入项目时检测:
