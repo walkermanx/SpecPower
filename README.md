@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.11.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.12.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -22,6 +22,10 @@
 - 🗂️ **产物化审查**（v1.11.0 ⭐）— 每次审查(含跳过)必须落盘到 `reviews/`,`verify-task-reviews.sh` 校验产物齐全性,commit 前硬强制
 - 🪶 **Flow 模式超轻量**（v1.11.0 ⭐）— Flow 不再创建变更目录/审查文件,只要口头提案 + TDD + commit,避免纪律过重被用户绕开
 - 📑 **SKILL.md 规则分层瘦身**（v1.11.0 ⭐）— 主文件从 321 行压至 163 行,跳过规则/声明模板/违规处置下沉到按需加载的 references
+- 🚨 **硬入口 + 冲突覆盖**（v1.12.0 ⭐）— SKILL.md 开头新增"收到任务后立即执行"指令式启动清单, 明确与项目 CLAUDE.md 精简约束冲突时的覆盖规则, 杜绝 Standard 模式被软化跳过
+- 🔒 **铁律禁止性重写**（v1.12.0 ⭐）— 关键规则速查表从描述性改为 9 条 R1–R9 禁止约束, 每条含"违规即时动作", 消除自行软化空间
+- 🧾 **tasks.md vs TaskCreate 职责划分**（v1.12.0 ⭐）— 明确 `tasks.md` 为真相之源, `TaskCreate` 仅作会话级 UI 辅助, 防止系统 prompt 默认推荐替代产物落盘
+- 📐 **模式判定推理强制模板**（v1.12.0 ⭐）— 8 维度观察表 + 推荐 + 理由 + 用户可改三段格式, 把"展示推理"从软要求变成 MUST
 - 🚀 **子 Agent 并行执行** — 独立任务并行处理，大幅提升效率
 - 📋 **完整工件追溯** — 从提案到归档，每个决策都有据可查
 - 🔒 **Git Worktree 隔离** — 关键变更物理隔离，保障主分支稳定
