@@ -12,6 +12,49 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 
 ---
 
+## 🚨 收到任务后立即执行 (不可跳过)
+
+> 这是启动 SpecPower 的**硬入口**。未按顺序执行以下步骤,视为违反流程纪律 (见 `references/discipline-recovery.md`)。
+
+### Step 0 — 恢复检测 (30 秒内完成)
+
+```bash
+find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
+```
+
+- 命中 → 进入 "恢复进行中的变更" 章节, 询问用户继续/新开
+- 无命中 → 进入 Step 1
+
+### Step 1 — 模式判定 + **必须向用户展示推理**
+
+按 "模式选择" 章节使用**强制推理格式** (见后文) 输出模式建议。**禁止**只说 "Standard 模式" 一句话, 用户无法纠正等同暗箱决策。
+
+### Step 2 — 按模式执行分支
+
+| 模式 | 立即动作 |
+|------|---------|
+| **Flow** | 口头提案获确认 → 直接 Phase 6 TDD,无需变更目录 |
+| **Standard** | ① 创建变更目录 `docs/spec-power/changes/<kebab-name>/` ② 初始化 `.specpower.yaml` ③ READ `references/phase-guide-planning.md` → Phase 1.5/2 ④ **产出 `proposal.md`** 后才能进 Phase 4 |
+| **Strict** | 同 Standard + 强制 Worktree + Phase 1 探索 + Phase 3 Delta 规范 |
+
+### Step 3 — 产物锚点 (Standard+)
+
+在完成以下产物前,**不得跳到后一阶段**:
+
+- `proposal.md` (Phase 2 确认门) — 未落盘 ⇒ 禁止进 Phase 4
+- `design.md` (Phase 4 确认门) — 未落盘 ⇒ 禁止进 Phase 5
+- `tasks.md` (Phase 5) — 未落盘 ⇒ 禁止进 Phase 6
+- `reviews/task-N-*.md` (Phase 6 每任务) — 未落盘 ⇒ 禁止 git commit
+
+### 反模式 (违规示例)
+
+- ❌ 用对话消息代替 `proposal.md` / `design.md` / `tasks.md`
+- ❌ 用 `TaskCreate` 工具代替 `tasks.md` 文件 (见 "任务管理职责划分")
+- ❌ 模式判定只写结论不写推理
+- ❌ Standard 模式跳过变更目录直接开始改代码
+
+---
+
 ## 关键规则速查 (必须遵守)
 
 > SpecPower 的铁律。违反任一条都会导致流程失效。具体操作见对应 references。
