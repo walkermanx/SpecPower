@@ -216,6 +216,27 @@
           "check": "verify-task-reviews.sh 对 task-1 的输出包含「通过」或全部产物齐全的提示，且没有「错误」或「拒绝 commit」提示"
         }
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "我要给后台管理系统加个用户列表页面：能看到所有注册用户、按用户名/邮箱筛选、分页（每页 20 条）、批量禁用/启用账号。前端用的是 React + antd 5，后端 /api/admin/users 已经有了。",
+      "expected_output": "应推荐 Standard 模式，输出模式判定推理表。进入 Phase 1.5 需求澄清时，第一步必须主动判断这是 UI 任务（含「页面」「列表」「筛选」「分页」「antd」），并用 AskUserQuestion 提供三选项：1. Figma URL  2. Figma 本地 MCP 读取  3. 其他（截图/文字描述）。不应直接跳到澄清问题，也不应跳过设计稿环节直接写 proposal。",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 7,
+      "prompt": "做个商品详情页（React + Tailwind），需要图片轮播、规格选择、加入购物车、相关推荐。设计稿在这里：https://figma.com/file/abc123XYZ/Shop",
+      "expected_output": "应推荐 Standard 模式。识别到用户提供的 Figma URL 不符合标准格式（用了过时的 /file/ 路径，没有 node-id 参数），必须拒绝该 URL 并明确说明要求的格式：https://www.figma.com/design/<fileKey>/...?node-id=<nodeId>，请求用户重新提供。不应自行猜测 fileKey/nodeId 直接调用 MCP 工具。",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 8,
+      "prompt": "给 Express 后端加个 /api/users 接口：GET 方法，支持按 username 模糊匹配、email 精确匹配做筛选，分页参数 page 和 pageSize，返回 JSON 格式的 { items, total }。数据库是 Postgres，用现有的 users 表。",
+      "expected_output": "应推荐 Standard 模式（涉及 API + 数据库 + 可能需要测试，>2 文件）。进入 Phase 1.5 时不应该触发设计稿三选项子流程（因为没有 UI 关键词、没有前端文件路径、用户也未提及设计/视觉/原型）。应直接进入第 3 步逐个澄清关键问题，覆盖目的/约束/成功标准/边界四个维度。",
+      "files": [],
+      "assertions": []
     }
   ]
 }
