@@ -13,44 +13,63 @@
 
 ### 背景
 
-v1.12.0 在硬入口层完成了 "不可绕过的启动清单"。但 Phase 6 内部的 TDD 协议仍有暧昧 — RED 阶段允许 "测试编译失败" 作为合法证据, 导致两个真问题:
+v1.12.0 完成了硬入口纪律强化, 但实际运行下又暴露三类问题:
 
-- **RED 强度弱**: 在 Kotlin/Java 等静态语言里, 写一个调用尚不存在方法的测试天然编译失败。把 "Unresolved reference" 当 RED 实际只验证了 "方法不存在", 不验证 "方法行为是否正确"。如果 implementer 跳过 stub 直接全量实现, compile-time RED 看不出违规
-- **流程不可审计**: implementer 自报 "先写测试再写实现", commit 是原子提交。主会话只能信任报告, 没有独立证据可查
+1. **UI 类任务的设计稿引入子流程缺失** — 设计师可能给 Figma URL / 本地 MCP / 截图 / 文字描述四种, 没有专门子流程模型经常瞎猜或漏问关键约束; Standard 模式 "最多 3 个关键问题" 上限对齐 Strict 后还可以再松开, 让澄清覆盖更完整
+2. **恢复进行中变更 + 长会话上下文不可控** — 主会话恢复时容易 batch 读所有产物 (proposal/design/tasks/reviews), 瞬间填满刚清空的上下文; Phase 6 多任务执行时上下文一路膨胀, 模型质量与速度同步下降
+3. **TDD 协议有暧昧** — RED 阶段允许 "测试编译失败" 作为合法证据。在 Kotlin/Java/TypeScript 等静态语言里, 写一个调用尚不存在方法的测试天然编译失败, 把 "Unresolved reference" 当 RED 实际只验证了 "方法不存在", 不验证 "方法行为是否正确"; 子 agent 自报 "先写测试再实现" 但 commit 原子化, 主会话只能信任, 没有独立审计证据
 
-v1.13.0 把 TDD 协议升级为 **A+C 满分方案**:
-
-- **A: stub-first runtime RED 强制** — implementer 必须先建 stub 让代码能编译 (方法/类存在但行为故意错误, 例如 `return false`), 再写测试, 运行测试看到 **runtime assertion 失败** 才算合法 RED
-- **C: 证据强制** — implementer 完成报告 + `task-N-self.md` 必须附 RED + GREEN 两段原始输出; `tdd_evidence` frontmatter 字段成为必填, `verify-task-reviews.sh` 强制校验
+v1.13.0 三个方向对症: **设计稿子流程 + Standard 澄清完整化** / **最小恢复 + 上下文管理 CP** / **A+C 满分 TDD**。
 
 ### 新增 ✨
 
-- **Stub-first runtime RED 协议** (`references/execution-guide.md`)
-  - 新增 "Stub-first runtime RED (v1.13.0 起强制)" 小节, 给出 7 步流程
-  - "RED 阶段详解" 加入 stub-first 反例 (compile-time) 与正例 (runtime) 对照
-  - "常见违规和纠正" 表新增一行: "把 compile-time 失败当 RED" → "先建 stub 让代码能编译, 再写测试看到 runtime assertion 失败"
-- **TDD 证据 frontmatter 字段** (`references/review-artifact-protocol.md`)
-  - `task-N-self.md` frontmatter 必填字段新增 `tdd_evidence: runtime-red | exempt-config | exempt-style | exempt-doc | exempt-infra | exempt-static`
-  - body 必须含 `## TDD 证据` 章节: `tdd_evidence: runtime-red` 时附 RED + GREEN 原始输出, exempt-* 时附豁免说明 + 替代验证摘要
-- **implementer 完成报告模板** (`agents/implementer.md`)
-  - 输出报告新增 "RED 阶段证据" 与 "GREEN 阶段证据" 两段 (`tdd_evidence != exempt-*` 时必填)
-  - 执行规则 1 (TDD) 重写为 stub-first runtime RED 流程, 显式禁止 compile-time RED 作为合法证据
-- **`verify-task-reviews.sh` 校验升级**
-  - self.md frontmatter 必填字段加入 `tdd_evidence`
-  - 取值白名单校验: 命中白名单外即拒绝
-  - `tdd_evidence: runtime-red` 时强制检查 body 含 `## TDD 证据` 章节
+#### 1. Phase 1.5 设计稿引入子流程 (UI 类任务关键)
+
+- **Standard 模式取消 "最多 3 个关键问题" 上限**, 对齐 Strict 按需提问直到清晰; 问题维度必须覆盖目的 / 约束 / 成功标准 / 边界
+- **Phase 1.5 新增 Step 2「设计稿引入判断」**: UI 关键词 / 前端文件路径 / 设计平台主动提及命中即触发
+- **新增「设计稿来源选择」子流程** (`AskUserQuestion` 三选项):
+  - **Figma URL** — 强制格式校验 `https://www.figma.com/design/<fileKey>/...?node-id=<nodeId>`, 不合规拒绝重提
+  - **Figma 本地 MCP** — 同时支持 `mcp__plugin_figma_figma__*` 与 `mcp__figma-desktop__*` 两套, 一次性 / 增量循环读取 (增量循环每轮主动询问组件映射 / 命名约束 / 特殊交互补充, 适配设计稿不规范场景)
+  - **其他** — 截图 (`Read` 图片) / 文字描述 / 外部原型链接
+- **新增 Step C 信息归集表**: 设计稿信息按类型分发到 `proposal.md` 与 `design.md` 不同段落, 避免散落
+- **`skip-policy` 更新**: UI 任务跳过 Phase 1.5 多一条前置 — 设计稿来源已明确或显式声明无需
+- **evals 回归**: 追加 id 6 / 7 / 8 三个测试用例 (UI 自动触发 / Figma URL 校验 / 后端任务不误触发)
+
+#### 2. 恢复机制最小加载 + 上下文管理 CP 检查点
+
+- **「恢复进行中的变更」章节重写**: 强制按 phase 分级加载 (`.specpower.yaml` / 当前任务 reviews / 不预读全部产物), **禁止** 主会话 batch 读所有产物 (这会瞬间填满刚清空的上下文 → 清空收益归零)
+- **新增「恢复后向用户复述」8 行硬上限模板**: 既验证模型确实读到关键信息, 又给用户低成本纠错机会
+- **新增「上下文管理 — 阶段性清空建议」章节**: 三个清空检查点 (CP) 主动建议
+  - **CP-1**: Phase 5 → Phase 6 (`tasks.md` 落盘 + 用户确认设计 → 进入执行**前**)
+  - **CP-2**: Phase 6 内 (每完成 3-5 个任务 commit 后, 或主会话已读入大量代码 / 审查产物时)
+  - **CP-3**: Phase 7 → Phase 8 (全局审查完成 → 进入验证**前**)
+- **新增 `.claudeignore`**: 排除 IDE / docs / benchmark / examples 等非源码目录, 减小 LLM 加载工程时的上下文负担
+
+#### 3. TDD 协议升级到 A+C 满分
+
+- **A: stub-first runtime RED 强制** — implementer 必须先建 stub 让代码能编译 (方法 / 类存在但行为故意错误, 例如 `return false` / `return null` / 抛 `UnsupportedOperationException`), 再写测试, 运行测试看到 **runtime assertion 失败** 才算合法 RED; **不接受 compile-time 失败** (Cannot find symbol / Unresolved reference) 作为 RED — 这只验证 "方法不存在" 不验证 "方法行为正确"
+- **C: 证据强制** — implementer 完成报告 + `task-N-self.md` 必须附 RED + GREEN 两段原始输出; `tdd_evidence` frontmatter 字段成为必填, `verify-task-reviews.sh` 强制校验
+- **`references/execution-guide.md`** 新增「Stub-first runtime RED」章节给出 7 步流程; 「RED 阶段详解」加入反例 (compile-time) 与正例 (runtime) 代码对照; 「常见违规和纠正」表新增一行
+- **`references/review-artifact-protocol.md`** `task-N-self.md` 模板加 `tdd_evidence` frontmatter 字段 + `## TDD 证据` body 章节
+- **`agents/implementer.md`** 输出报告新增 RED / GREEN 证据段 + 替代验证段; 执行规则 1 重写为 stub-first
+- **`scripts/verify-task-reviews.sh`** self.md 校验加 `tdd_evidence` 字段必填 + 取值白名单 + `runtime-red` 时检查章节
+- **`references/flow-mode-guide.md`** Phase A: RED 跟进 runtime 失败要求 (Flow 不强制证据落盘, 因为不创建变更目录 / 审查文件)
 
 ### 重构 ♻️
 
 - **SKILL.md R1 铁律重写**: 从 "禁止未写失败测试就改动含逻辑的代码" 升级为 "禁止未让运行时测试失败 (runtime RED) 就改动含逻辑的代码; RED + GREEN 必须留下原始输出证据"
-- **Flow 模式 Phase A: RED** (`references/flow-mode-guide.md`): 措辞跟进, 强调 runtime 失败 (但 Flow 不强制证据落盘, 因为不创建变更目录/审查文件)
+- **逐任务循环 6 步说明** 加入 stub→RED→GREEN 节奏 + reviews 协议引用 `tdd_evidence` 必填字段
+- **`references/phase-guide-planning.md`** 大幅扩展 Phase 1.5: 新增约 209 行设计稿引入流程 + Step C 信息归集
 
 ### 升级指引
 
-- **正在进行的变更目录**: 后续未启动的任务 self.md 必须含 `tdd_evidence` 字段; 已 commit 的任务无需回填 (向后兼容)
+- **设计稿子流程**: UI 类任务 (Compose / Activity / Fragment / 含 UI 关键词) 自动触发, 后端 / 配置类任务不误触发 (evals 已回归); 用户可在子流程内拒绝引入设计稿 (走文字描述路径)
+- **恢复机制**: 已有 in-progress 变更目录无需迁移, 新加载逻辑会按当前 phase 自动决定读什么
+- **上下文管理 CP**: 建议性约束 (非铁律 R 级), 用户可拒绝清空, 模型不应静默跳过提示
+- **TDD 协议**: 后续未启动任务的 `task-N-self.md` 必须含 `tdd_evidence` 字段; 已 commit 的任务无需回填 (向后兼容)
 - **已安装 git pre-commit hook 的项目**: 重新执行 `scripts/link-skill.sh` 拉取新版 verify 逻辑
 - **Flow 模式**: TDD 协议口径同步 (runtime-RED) 但不强制证据产物 — 单会话内完成即可
-- **不破坏兼容性的部分**: 模式判定、提案/设计确认门、产物化审查、跳过协议等 v1.12.0/v1.11.0 引入的纪律保持不变
+- **不破坏兼容性的部分**: 模式判定、提案 / 设计确认门、产物化审查、跳过协议等 v1.12.0 / v1.11.0 引入的纪律保持不变
 
 ---
 

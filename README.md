@@ -2,7 +2,7 @@
 
 > **规范驱动的超能力开发工作流** — 让复杂开发变得可控、可追溯、高质量
 
-[![Version](https://img.shields.io/badge/version-1.12.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.13.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **SpecPower** 是一套完整的软件开发方法论,融合结构化规划能力和执行纪律,通过**规划深度匹配任务复杂度**、**质量门控保障关键节点**、**灵活迭代而非瀑布僵化**三大原则,帮助开发者高效完成从简单修复到复杂重构的各类任务。
@@ -26,6 +26,9 @@
 - 🔒 **铁律禁止性重写**（v1.12.0 ⭐）— 关键规则速查表从描述性改为 9 条 R1–R9 禁止约束, 每条含"违规即时动作", 消除自行软化空间
 - 🧾 **tasks.md vs TaskCreate 职责划分**（v1.12.0 ⭐）— 明确 `tasks.md` 为真相之源, `TaskCreate` 仅作会话级 UI 辅助, 防止系统 prompt 默认推荐替代产物落盘
 - 📐 **模式判定推理强制模板**（v1.12.0 ⭐）— 8 维度观察表 + 推荐 + 理由 + 用户可改三段格式, 把"展示推理"从软要求变成 MUST
+- 🎨 **Phase 1.5 设计稿引入子流程**（v1.13.0 ⭐）— UI 关键词命中即触发, AskUserQuestion 三选项 (Figma URL 强格式校验 / Figma 本地 MCP 增量循环 / 截图+文字), 配合 Step C 信息归集表分发到 proposal+design
+- 🧠 **最小恢复 + 上下文 CP 检查点**（v1.13.0 ⭐）— 恢复时按 phase 分级加载, 禁止 batch 读全部产物; Phase 5→6 / Phase 6 内 / Phase 7→8 三个清空建议点 (CP-1/2/3), 主动利用产物体系支持任意点重入
+- 🧪 **TDD 协议 A+C 满分**（v1.13.0 ⭐）— stub-first runtime RED 强制 (不接受 compile-time 失败) + RED/GREEN 原始输出证据强制, `tdd_evidence` 字段必填, `verify-task-reviews.sh` 强制校验, 让 implementer 子 agent 的 TDD 流程可被独立审计
 - 🚀 **子 Agent 并行执行** — 独立任务并行处理，大幅提升效率
 - 📋 **完整工件追溯** — 从提案到归档，每个决策都有据可查
 - 🔒 **Git Worktree 隔离** — 关键变更物理隔离，保障主分支稳定
