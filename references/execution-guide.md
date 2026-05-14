@@ -27,50 +27,102 @@
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  RED: 写一个会失败的测试                          │
+│  STUB: 让被测代码能编译, 但行为故意错误             │
 │       ↓                                           │
-│  验证 RED: 运行测试，确认失败原因正确              │
+│  RED: 写测试, 运行测试                              │
 │       ↓                                           │
-│  GREEN: 写最少的代码使测试通过                     │
+│  验证 RED: 必须看到 runtime assertion 失败          │
+│           (不接受 compile-time 失败作为 RED)        │
+│       ↓                                           │
+│  GREEN: 把 stub 改为正确实现                        │
 │       ↓                                           │
 │  验证 GREEN: 运行全部测试，确认全部通过             │
 │       ↓                                           │
 │  REFACTOR: 改善代码结构，保持绿色                  │
 │       ↓                                           │
-│  回到 RED (下一个行为)                             │
+│  回到 STUB (下一个行为)                             │
 └──────────────────────────────────────────────────┘
 ```
 
+### Stub-first runtime RED (v1.13.0 起强制)
+
+**为什么不是 compile-time RED**: 在 Kotlin/Java/TypeScript 等静态语言中, 写一个调用尚不存在方法的测试会立即编译失败。把这种 "Unresolved reference" / "Cannot find symbol" 当作 RED, 实际只验证了 "方法不存在", 不验证 "方法行为是否正确"。如果 implementer 跳过 stub 直接全量实现, compile-time RED 看不出违规;**runtime RED 才能逼出 "测试-实现" 的真实对照**。
+
+**强制流程**:
+
+1. **建 stub**: 让被测代码能编译, 但行为故意错误。例如:
+   - 方法存在但 `return false` / 返回 `null` / 抛 `UnsupportedOperationException("not implemented")`
+   - 类存在但所有 public 方法返回硬编码的 default 值
+2. **写测试**: 表达期望行为 (具体的 GIVEN/WHEN/THEN 断言)
+3. **运行测试**: 必须看到 **runtime assertion 失败** (例如 `expected true but got false` / `expected 409 but got null`)
+4. **截取失败原始输出, 作为 RED 证据** — 30 行以内的关键 stderr/stdout 片段
+5. **改 stub 为真实实现**
+6. **再次运行测试**: 全绿
+7. **截取通过原始输出, 作为 GREEN 证据** — 20 行以内
+8. **把两段证据贴到完成报告 + `task-N-self.md` `## TDD 证据` 章节** (Standard+; Flow 模式仅口头汇报即可)
+
+**例外**: 见上方 "TDD 适用范围" 中的豁免列表 (配置/样式/文档/基础设施/静态资源)。豁免场景在 frontmatter 用 `tdd_evidence: exempt-*` 显式声明, 并提供替代验证摘要 (运行/视觉/渲染)。
+
 ### RED 阶段详解
 
-写一个测试，描述你期望的行为。这个测试必须失败。
+**目标**: 让测试在运行期失败, 失败原因是 "实现的行为不符合期望", 而不是 "代码不能编译"。
 
 ```typescript
-// 好的 RED — 测试一个具体行为
+// ❌ 反例: compile-time RED (不接受)
+// 直接写调用一个不存在方法的测试
+test('createUser returns 409 when email already exists', async () => {
+  const result = await createUser({...});  // createUser 还没定义 → 编译失败
+  expect(result.status).toBe(409);
+});
+// 编译错: Cannot find name 'createUser'.
+// 这是 compile-time RED, 没有验证任何行为。
+```
+
+```typescript
+// ✅ 正例: stub-first runtime RED
+// Step 1 — 建 stub
+async function createUser(data: UserData): Promise<Result> {
+  return { status: 200, body: null };  // 故意错误的 stub
+}
+
+// Step 2 — 写测试
 test('createUser returns 409 when email already exists', async () => {
   await createUser({ email: 'alice@example.com', name: 'Alice' });
   const result = await createUser({ email: 'alice@example.com', name: 'Bob' });
   expect(result.status).toBe(409);
   expect(result.body.error).toContain('already exists');
 });
+
+// Step 3 — 运行测试, 看到 runtime 失败:
+//   AssertionError: expected 200 to equal 409
+//                                   ^^^ runtime 断言失败, 这才是合法 RED
 ```
 
 ### 验证 RED
 
-运行测试，检查失败原因。失败原因必须是"功能未实现"，而不是：
-- 语法错误
-- 导入错误
-- 测试框架配置问题
+运行测试, 检查失败原因必须**满足两个条件**:
 
-如果失败原因不对，先修复测试本身。
+1. **测试已编译并运行到断言** (compile / link / 测试框架启动都成功)
+2. **失败是 runtime assertion failure**, 例如:
+   - `expected true but got false`
+   - `expected 409 but got 200`
+   - `Strings differ: expected "INIT_..." but was "wrong"`
+   - 抛出 stub 故意抛的 `UnsupportedOperationException` 也可
+
+**不接受的 "RED"**:
+- 编译错误 (Cannot find symbol / Unresolved reference / Cannot find name)
+- 语法错误 / 导入错误 / 测试框架配置问题
+- 测试还没写完就停了
+
+如果失败原因不是 runtime assertion failure, 先补 stub 或修测试, 重新验证 RED。
 
 ### GREEN 阶段
 
-写**最少**的代码让测试通过。不要提前优化，不要处理还没测试覆盖的边界情况。
+写**最少**的代码让测试通过。从 stub 出发, 改成真实实现, 不要提前优化, 不要处理还没测试覆盖的边界情况。
 
 ```typescript
-// 好的 GREEN — 最小实现
-async function createUser(data) {
+// ✅ GREEN — 把 stub 改为最小真实实现
+async function createUser(data: UserData): Promise<Result> {
   const existing = await db.users.findByEmail(data.email);
   if (existing) {
     return { status: 409, body: { error: 'Email already exists' } };
@@ -82,7 +134,7 @@ async function createUser(data) {
 
 ### 验证 GREEN
 
-运行**全部**测试，不只是新写的那个。确保新代码没有破坏已有功能。
+运行**全部**测试，不只是新写的那个。确保新代码没有破坏已有功能。捕获原始通过输出 (例如 `passed: 47, failed: 0`), 作为 GREEN 证据贴到完成报告。
 
 ### REFACTOR 阶段
 
@@ -93,10 +145,12 @@ async function createUser(data) {
 | 违规 | 纠正 |
 |------|------|
 | 写了生产代码但没有对应测试 | 删掉代码，先写测试 |
-| 测试失败原因是语法错误 | 修复测试语法，重新验证 RED |
+| **把 compile-time 失败当 RED** (方法不存在导致编译失败就声称 "RED 完成") | **先建 stub 让代码能编译, 再写测试看到 runtime assertion 失败**, 才是合法 RED |
+| 测试失败原因是语法错误 / 导入错误 | 修复测试语法, 重新跑到 runtime, 验证 RED |
 | GREEN 阶段写了超出测试覆盖的代码 | 删掉多余代码，或补充测试 |
-| REFACTOR 阶段加了新功能 | 回退，新功能走新的 RED-GREEN 循环 |
-| 跳过了验证 RED | 回去运行测试，确认失败原因 |
+| REFACTOR 阶段加了新功能 | 回退，新功能走新的 STUB → RED → GREEN 循环 |
+| 跳过了验证 RED | 回去运行测试，确认失败是 runtime assertion |
+| 完成报告/self.md 缺 RED + GREEN 原始输出 | 补回两段输出 (`tdd_evidence: runtime-red` 时强制), 见 `review-artifact-protocol.md` |
 
 ---
 

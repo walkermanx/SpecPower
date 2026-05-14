@@ -64,17 +64,27 @@ Flow 模式是 SpecPower 的轻量级工作流，适用于明确、简单的任�
 
 遵循 RED-GREEN-REFACTOR，但更紧凑：
 
-#### Phase A: RED（写失败测试）
+#### Phase A: RED（stub-first runtime RED）
+
+> v1.13.0 起: Flow 模式同样要求 **runtime RED** (不接受 compile-time 失败), 但 Flow **不强制证据落盘** (Flow 不创建变更目录 / 审查文件), 口头汇报失败信号即可。
 
 ```typescript
-// ❌ 先写一个会失败的测试
+// 1. 建 stub: 让代码能编译, 行为故意错误
+async function login(email: string, password: string) {
+  return { success: false };  // stub 故意 false
+}
+
+// 2. 写测试
 test('login with special chars in password', async () => {
   const result = await login('user@example.com', 'p@ssw#rd!');
   expect(result.success).toBe(true);
 });
+
+// 3. 运行测试, 看到 runtime 断言失败:
+//   AssertionError: expected false to equal true   ← 合法 RED
 ```
 
-运行测试，确认失败原因是"功能未实现"。
+如果只是 "Cannot find name 'login'" 这种编译错误就停下,**不算 RED**, 先把 stub 补上让代码能跑到断言阶段。
 
 #### Phase B: GREEN（最小实现）
 

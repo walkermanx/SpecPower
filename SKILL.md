@@ -76,7 +76,7 @@ find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-p
 
 | # | 铁律 (禁止性) | 适用 | 违规即时动作 |
 |---|--------------|------|-------------|
-| R1 | **禁止**未写失败测试就改动含逻辑的代码 (TDD) | 所有 | 撤回改动 → 补失败测试 → 重新实现,见 `execution-guide.md` |
+| R1 | **禁止**未让运行时测试失败 (runtime RED) 就改动含逻辑的代码; RED + GREEN 必须留下原始输出证据 (TDD, v1.13.0 起) | 所有 | 撤回改动 → 先建 stub → 写测试看到 runtime 断言失败 → 重新实现 → 补 RED/GREEN 证据到 `task-N-self.md` `## TDD 证据`, 见 `execution-guide.md` "Stub-first runtime RED" |
 | R2 | **禁止**单个 commit 跨越 2+ 任务 (逐任务 commit) | Standard+ | 回退 HEAD, 按任务拆分重提, 见 `phase-guide-execution.md` — Phase 6 |
 | R3 | **禁止**跳过 `proposal.md` 落盘直接进 Phase 4 (提案确认门) | Standard+ | 停止推进, 先落盘 proposal.md + 用户确认, 见 `phase-guide-planning.md` — Phase 2 |
 | R4 | **禁止**跳过 `design.md` 落盘直接进 Phase 5 (设计确认门) | Standard+ | 停止推进, 先落盘 design.md + 用户确认, 见 `phase-guide-execution.md` — Phase 4 |
@@ -86,10 +86,11 @@ find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-p
 | R8 | **禁止**用 `TaskCreate` 工具代替 Standard+ 的 `tasks.md` 落盘 | Standard+ | 补写 `tasks.md`, `TaskCreate` 仅作会话级追踪, 见下文 "任务管理职责划分" |
 | R9 | **禁止**模式判定只给结论不给推理 (判定可见性) | 所有 | 按 "模式判定输出格式" 重写推理并展示给用户 |
 
-**逐任务循环 6 步 (Standard+)**: 实现(TDD) → 自审 → 规范审查(触发/声明跳过) → 代码审查(触发/声明跳过) → 修复闭环 → `verify-task-reviews.sh` 校验 + git commit
+**逐任务循环 6 步 (Standard+)**: 实现(TDD: stub → runtime RED → GREEN, 留 RED/GREEN 证据) → 自审 → 规范审查(触发/声明跳过) → 代码审查(触发/声明跳过) → 修复闭环 → `verify-task-reviews.sh` 校验 + git commit
 
 每个审查步骤(执行或跳过)必须在 `reviews/` 产出对应 markdown 文件。具体机制:
-- 产物化审查协议: `references/review-artifact-protocol.md`
+- 产物化审查协议: `references/review-artifact-protocol.md` (含 `task-N-self.md` 的 `tdd_evidence` 必填字段与 `## TDD 证据` 章节)
+- TDD 强协议 (stub-first runtime RED + 证据): `references/execution-guide.md` "Stub-first runtime RED"
 - 跳过规则与有效理由: `references/skip-policy.md`
 - 任务完成声明模板: `references/task-declaration.md`
 - **违规处置与规则退役**: `references/discipline-recovery.md` ← 触发任一铁律违规必读

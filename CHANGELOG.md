@@ -9,6 +9,51 @@
 
 ---
 
+## [1.13.0] - 2026-05-14
+
+### 背景
+
+v1.12.0 在硬入口层完成了 "不可绕过的启动清单"。但 Phase 6 内部的 TDD 协议仍有暧昧 — RED 阶段允许 "测试编译失败" 作为合法证据, 导致两个真问题:
+
+- **RED 强度弱**: 在 Kotlin/Java 等静态语言里, 写一个调用尚不存在方法的测试天然编译失败。把 "Unresolved reference" 当 RED 实际只验证了 "方法不存在", 不验证 "方法行为是否正确"。如果 implementer 跳过 stub 直接全量实现, compile-time RED 看不出违规
+- **流程不可审计**: implementer 自报 "先写测试再写实现", commit 是原子提交。主会话只能信任报告, 没有独立证据可查
+
+v1.13.0 把 TDD 协议升级为 **A+C 满分方案**:
+
+- **A: stub-first runtime RED 强制** — implementer 必须先建 stub 让代码能编译 (方法/类存在但行为故意错误, 例如 `return false`), 再写测试, 运行测试看到 **runtime assertion 失败** 才算合法 RED
+- **C: 证据强制** — implementer 完成报告 + `task-N-self.md` 必须附 RED + GREEN 两段原始输出; `tdd_evidence` frontmatter 字段成为必填, `verify-task-reviews.sh` 强制校验
+
+### 新增 ✨
+
+- **Stub-first runtime RED 协议** (`references/execution-guide.md`)
+  - 新增 "Stub-first runtime RED (v1.13.0 起强制)" 小节, 给出 7 步流程
+  - "RED 阶段详解" 加入 stub-first 反例 (compile-time) 与正例 (runtime) 对照
+  - "常见违规和纠正" 表新增一行: "把 compile-time 失败当 RED" → "先建 stub 让代码能编译, 再写测试看到 runtime assertion 失败"
+- **TDD 证据 frontmatter 字段** (`references/review-artifact-protocol.md`)
+  - `task-N-self.md` frontmatter 必填字段新增 `tdd_evidence: runtime-red | exempt-config | exempt-style | exempt-doc | exempt-infra | exempt-static`
+  - body 必须含 `## TDD 证据` 章节: `tdd_evidence: runtime-red` 时附 RED + GREEN 原始输出, exempt-* 时附豁免说明 + 替代验证摘要
+- **implementer 完成报告模板** (`agents/implementer.md`)
+  - 输出报告新增 "RED 阶段证据" 与 "GREEN 阶段证据" 两段 (`tdd_evidence != exempt-*` 时必填)
+  - 执行规则 1 (TDD) 重写为 stub-first runtime RED 流程, 显式禁止 compile-time RED 作为合法证据
+- **`verify-task-reviews.sh` 校验升级**
+  - self.md frontmatter 必填字段加入 `tdd_evidence`
+  - 取值白名单校验: 命中白名单外即拒绝
+  - `tdd_evidence: runtime-red` 时强制检查 body 含 `## TDD 证据` 章节
+
+### 重构 ♻️
+
+- **SKILL.md R1 铁律重写**: 从 "禁止未写失败测试就改动含逻辑的代码" 升级为 "禁止未让运行时测试失败 (runtime RED) 就改动含逻辑的代码; RED + GREEN 必须留下原始输出证据"
+- **Flow 模式 Phase A: RED** (`references/flow-mode-guide.md`): 措辞跟进, 强调 runtime 失败 (但 Flow 不强制证据落盘, 因为不创建变更目录/审查文件)
+
+### 升级指引
+
+- **正在进行的变更目录**: 后续未启动的任务 self.md 必须含 `tdd_evidence` 字段; 已 commit 的任务无需回填 (向后兼容)
+- **已安装 git pre-commit hook 的项目**: 重新执行 `scripts/link-skill.sh` 拉取新版 verify 逻辑
+- **Flow 模式**: TDD 协议口径同步 (runtime-RED) 但不强制证据产物 — 单会话内完成即可
+- **不破坏兼容性的部分**: 模式判定、提案/设计确认门、产物化审查、跳过协议等 v1.12.0/v1.11.0 引入的纪律保持不变
+
+---
+
 ## [1.12.0] - 2026-05-07
 
 ### 背景

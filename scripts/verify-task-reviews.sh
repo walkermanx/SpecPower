@@ -132,11 +132,37 @@ FAILED=0
 
 # 1. 自审文件 (必须存在, 不可跳过)
 SELF_FILE="${PREFIX}-self.md"
-if ! check_frontmatter "$SELF_FILE" task type timestamp diff_lines; then
-    err "任务 $TASK_ID: 缺少自审文件 $SELF_FILE"
+if ! check_frontmatter "$SELF_FILE" task type timestamp diff_lines tdd_evidence; then
+    err "任务 $TASK_ID: 缺少自审文件 $SELF_FILE 或 frontmatter 字段不全 (要求: task, type, timestamp, diff_lines, tdd_evidence)"
     FAILED=1
 else
     ok "任务 $TASK_ID: 自审文件齐全 ($SELF_FILE)"
+
+    # 1.1 校验 tdd_evidence 取值白名单 (v1.13.0 起)
+    TDD_EVIDENCE=$(awk '/^---$/{c++; next} c==1 && /^tdd_evidence:/ { sub(/^tdd_evidence:[[:space:]]*/, "", $0); gsub(/[[:space:]]+$/, "", $0); print; exit }' "$SELF_FILE")
+    case "$TDD_EVIDENCE" in
+        runtime-red|exempt-config|exempt-style|exempt-doc|exempt-infra|exempt-static)
+            ok "任务 $TASK_ID: tdd_evidence=$TDD_EVIDENCE"
+            ;;
+        "")
+            err "任务 $TASK_ID: $SELF_FILE 中 tdd_evidence 字段为空"
+            FAILED=1
+            ;;
+        *)
+            err "任务 $TASK_ID: tdd_evidence 取值非法 ($TDD_EVIDENCE), 白名单: runtime-red / exempt-config / exempt-style / exempt-doc / exempt-infra / exempt-static (见 review-artifact-protocol.md)"
+            FAILED=1
+            ;;
+    esac
+
+    # 1.2 runtime-red 时 body 必须含 ## TDD 证据 章节
+    if [ "$TDD_EVIDENCE" = "runtime-red" ]; then
+        if ! grep -q "^## TDD 证据" "$SELF_FILE"; then
+            err "任务 $TASK_ID: tdd_evidence=runtime-red 但 $SELF_FILE 缺少 '## TDD 证据' 章节 (应包含 RED + GREEN 原始输出)"
+            FAILED=1
+        else
+            ok "任务 $TASK_ID: TDD 证据章节存在"
+        fi
+    fi
 fi
 
 # 2. 规范审查 (执行或跳过二选一)

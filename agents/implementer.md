@@ -59,7 +59,14 @@
 
 ## 执行规则
 
-1. **TDD**: 逻辑变更遵循 RED→GREEN→REFACTOR——先写失败测试并验证失败原因正确，再最小实现让测试通过，最后重构保持绿色。纯配置 / 样式 / 文档 / 基础设施脚本 / 静态资源等场景可豁免自动化测试但仍需验证（运行/渲染/加载等）。**为什么不是"铁律无例外"**：对不含逻辑的改动强写测试反而会掩盖真实验证，豁免不代表不验证。完整适用范围与豁免对应的验证方法见 `references/execution-guide.md` - "TDD 适用范围"。
+1. **TDD (stub-first runtime RED, v1.13.0 起强制)**: 逻辑变更必须按以下顺序执行 —
+   (a) **建 stub**: 让被测代码能编译, 但行为故意错误 (例如方法存在但 `return false` / 返回 null / 抛 `UnsupportedOperationException`)
+   (b) **写测试 + 运行**: 必须看到 **runtime assertion 失败** (例如 `expected true but got false`); **不接受 compile-time 失败** (Cannot find symbol / Unresolved reference) 作为 RED — 这只验证 "方法不存在" 不验证 "方法行为正确"
+   (c) **截 RED 原始输出** (≤30 行 stderr/stdout 关键片段) 作为证据
+   (d) **改 stub 为正确实现**, 再次运行测试, 全绿
+   (e) **截 GREEN 原始输出** (≤20 行) 作为证据
+   (f) 可选 REFACTOR (保持绿色)
+   完成报告必须附 RED 与 GREEN 两段原始输出 (见下方 "输出要求")。纯配置 / 样式 / 文档 / 基础设施脚本 / 静态资源等场景可豁免自动化测试但仍需替代验证 (运行/渲染/加载等), 在自审 frontmatter 用 `tdd_evidence: exempt-*` 显式声明。**为什么不是"铁律无例外"**: 对不含逻辑的改动强写测试反而会掩盖真实验证, 豁免不代表不验证。完整适用范围与豁免对应的验证方法见 `references/execution-guide.md` - "TDD 适用范围"; 强协议细节见同文件 "Stub-first runtime RED"。
 2. **每步验证**: 每完成一个步骤运行测试，确认结果符合预期。
 3. **最小实现**: GREEN 阶段只写让测试通过的最少代码。
 4. **不扩大范围**: 只做你的任务描述的工作，不顺手改其他东西。
@@ -104,7 +111,30 @@
 - [x] 步骤 1: <简述做了什么>
 - [x] 步骤 2: <简述做了什么>
 
-### 测试结果
+### TDD 证据声明
+tdd_evidence: <runtime-red | exempt-config | exempt-style | exempt-doc | exempt-infra | exempt-static>
+说明: <一行, 例如 "纯逻辑变更, 走 stub-first runtime RED" 或 "纯配置变更, 豁免自动化测试">
+
+### RED 阶段证据 (tdd_evidence != exempt-* 时必填)
+执行命令: <command, 例如 ./gradlew :app:testDebugUnitTest --tests "...">
+关键输出 (摘录 runtime assertion 失败行, ≤30 行):
+\`\`\`
+<原始 stderr/stdout 粘贴, 必须看到运行期断言失败, 例如 "expected true but got false">
+\`\`\`
+说明: <一句话, 哪个测试期望什么 / stub 故意返回什么 / 实际 runtime 失败信号>
+
+### GREEN 阶段证据 (tdd_evidence != exempt-* 时必填)
+执行命令: <同上>
+关键输出 (测试全绿摘录, ≤20 行):
+\`\`\`
+<原始输出粘贴, 例如 "Tests run: 6, Failures: 0">
+\`\`\`
+
+### 替代验证 (tdd_evidence == exempt-* 时必填)
+方法: <运行系统观察 / 视觉检查 / 渲染效果 / 加载测试>
+结果: <≤5 行说明>
+
+### 测试结果汇总
 命令: <运行的测试命令>
 通过: X | 失败: Y
 
@@ -112,12 +142,21 @@
 - Created: <文件列表>
 - Modified: <文件列表>
 
+### Diff 行数统计
+<按文件列出 +N -M, 末尾给总数>
+
+### 强制例外检查
+触发: 无 | 涉及 (安全/SQL/并发/金额/公开 API)
+说明: <如触发, 说明具体条目>
+
 ### 疑虑 (DONE_WITH_CONCERNS 时必填)
 <具体描述疑虑内容和原因>
 
 ### 注意事项 (如有)
 <任何下游任务需要知道的信息>
 ```
+
+> **为什么 RED/GREEN 证据必填**: 主会话与 spec-reviewer / code-reviewer 不参与你的实现过程, 只有这两段原始输出才能让他们独立审计 TDD 是否真的发生过, 而不是凭你的口头声明。证据缺失 → 主会话拒绝 commit (`verify-task-reviews.sh` 强制校验 `tdd_evidence` frontmatter 字段)。
 
 **状态说明**:
 - `COMPLETED`: 任务完成，无疑虑
@@ -136,5 +175,6 @@
 - 是否完整实现了所有需求？
 - 是否有遗漏的边界情况？
 - 代码是否干净、可维护？
+- **TDD 证据齐全**: `tdd_evidence` 已声明; 若值是 `runtime-red` 则 RED 段含运行期断言失败摘录、GREEN 段含测试全绿摘录; 若值是 `exempt-*` 则有替代验证摘要
 
 如果自审发现问题，**现在就修复**，不要在报告中留着。

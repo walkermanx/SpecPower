@@ -53,6 +53,7 @@ type: self-review
 timestamp: 2026-04-30T10:15:00Z
 diff_lines: 42
 files_changed: [src/foo.ts, tests/foo.test.ts]
+tdd_evidence: runtime-red | exempt-config | exempt-style | exempt-doc | exempt-infra | exempt-static
 ---
 
 # Task N 自审报告
@@ -77,9 +78,39 @@ files_changed: [src/foo.ts, tests/foo.test.ts]
 触发: 无 | 涉及(安全/SQL/并发/金额/公开API)
 说明: <如触发,说明具体条目>
 
+## TDD 证据
+
+### tdd_evidence: runtime-red 时 (强制流程)
+**RED 阶段**:
+- 执行命令: `<例如 ./gradlew :app:testDebugUnitTest --tests "..."> `
+- 关键输出 (≤30 行 stderr/stdout, 必须包含 runtime assertion 失败行):
+  ```
+  <从 implementer 报告原样粘贴>
+  ```
+- stub 故意错误说明: <一句话, 例如 "isContinuousDialogTarget stub 永远 return false">
+
+**GREEN 阶段**:
+- 执行命令: `<同上>`
+- 关键输出 (≤20 行, 测试全绿摘录):
+  ```
+  <从 implementer 报告原样粘贴>
+  ```
+
+### tdd_evidence: exempt-* 时
+- 豁免类别: <config / style / doc / infra / static>
+- 豁免理由: <一句话, 为什么这次改动不需要自动化测试>
+- 替代验证方法: <运行系统观察 / 视觉检查 / 渲染效果 / 加载测试>
+- 替代验证结果: <≤5 行说明>
+
 ## 结论
 通过 | 发现问题: <描述>
 ```
+
+> **`tdd_evidence` 字段语义**:
+> - `runtime-red`: 本任务做了 stub-first runtime RED + GREEN, body 必须有 `## TDD 证据` 章节附两段原始输出 (从 implementer 完成报告复制)
+> - `exempt-config` / `exempt-style` / `exempt-doc` / `exempt-infra` / `exempt-static`: 命中 `references/execution-guide.md` "TDD 适用范围" 中的豁免列表; 不需要 RED/GREEN 证据但 body 必须有替代验证摘要
+>
+> `verify-task-reviews.sh` 强制校验该字段及对应 body 章节存在; 详见下方 "Pre-commit 校验脚本"。
 
 ### `task-N-spec.md` — 规范审查报告
 
@@ -222,6 +253,7 @@ Reviews: reviews/task-3-self.md, reviews/task-3-spec.md, reviews/task-3-code-ski
 - 当前 staged diff 是否对应一个任务 (通过分支 / `.specpower.yaml` 推断)
 - 该任务所需的 3 个 review 文件是否存在 (`self.md` + `spec.md|spec-skip.md` + `code.md|code-skip.md`)
 - 每个文件的 frontmatter 是否含必填字段 (`task`, `type`, `timestamp`, `verdict` 或 `forced_exception_check`)
+- **`task-N-self.md` 的 `tdd_evidence` 字段** (v1.13.0 起必填): 取值在白名单内 (`runtime-red` / `exempt-config` / `exempt-style` / `exempt-doc` / `exempt-infra` / `exempt-static`), 且当值为 `runtime-red` 时 body 必须含 `## TDD 证据` 章节
 - 跳过声明中 `diff_lines` 字段与实际 staged diff 行数差距是否 ≤ 20% (防止虚报行数)
 
 **通过条件**: 所有审查文件存在且 frontmatter 有效 → 退出码 0
