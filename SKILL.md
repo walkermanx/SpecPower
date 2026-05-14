@@ -34,8 +34,10 @@ SpecPower 融合了 OpenSpec 的结构化规划能力和 Superpowers 的执行�
 find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;
 ```
 
-- 命中 → 进入 "恢复进行中的变更" 章节, 询问用户继续/新开
+- 命中 → 进入 "恢复进行中的变更" 章节, **按"最小恢复"原则**加载 → 询问用户继续/新开
 - 无命中 → 进入 Step 1
+
+> ⚠️ 恢复时**禁止**主动 batch 读所有产物 (proposal/design/tasks/reviews 全部一次性读完)。这会瞬间填满刚清空的上下文 → 清空收益归零。具体加载策略见"恢复进行中的变更"章节的分级表。
 
 ### Step 1 — 模式判定 + **必须向用户展示推理**
 
@@ -128,14 +130,96 @@ find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-p
 
 ## 恢复进行中的变更
 
-新对话进入项目时检测:
+> **核心原则**: 恢复 = **最少必要信息加载**, 不是 "把所有产物读一遍"。后者瞬间填满刚清空的上下文 → 清空收益归零, 与 [上下文管理](#上下文管理--阶段性清空建议) 章节的设计意图直接冲突。
+
+### 检测与定位 (30 秒内完成)
 
 1. `find docs/spec-power/changes -name ".specpower.yaml" -exec grep -l "status: in-progress" {} \;`
-2. 读取 `.specpower.yaml` 确认模式、工件状态、`tasks` 字段(Standard+)
-3. 询问用户: 继续 / 新变更 / 查看详情
-4. 切换 worktree(如有)→ 加载工件 → 从首个 `blocked`/`pending` 工件继续
+2. 读取 `.specpower.yaml` 确认: 模式 / 当前 phase / 已完成产物 / 下一步 (Standard+ 看 `tasks` 字段)
+3. 询问用户: **继续 / 新变更 / 查看详情**
+4. 切换 worktree (如有) → 进入"按 phase 分级加载"
+
+### 按 phase 分级加载 (按需读, 不预读)
+
+| 当前 phase | 必读 | 按需读 (任务触发时再读) | 不要主动读 |
+|-----------|------|----------------------|----------|
+| Phase 1.5 / 2 (规划中) | `.specpower.yaml` + `proposal.md`(若已落盘) | 探索阶段笔记 | tasks.md / reviews/(尚不存在) |
+| Phase 4 (设计中) | `.specpower.yaml` + `proposal.md` | `design.md` 半成品 | reviews/ |
+| Phase 5 (拆任务) | `.specpower.yaml` + `proposal.md` + `design.md` | tasks.md 半成品 | reviews/ |
+| Phase 6 (执行中) | `.specpower.yaml` + `tasks.md` 中**当前任务**条目 | 当前任务的 `reviews/task-N-*.md` | 已完成任务的 reviews 全文(用 `git log` / `git show` 按需查) / 与当前任务无关的设计章节 |
+| Phase 7 (全局审查) | `.specpower.yaml` + `tasks.md` 任务清单 | `git log --oneline` 看 commit 序列、关键 reviews 摘要 | 单个任务的 reviews 全文(grep 按需切片) |
+| Phase 8 (验证) | `.specpower.yaml` + 验证清单 | 测试输出、构建日志 | 设计/审查文档 |
+| Phase 9 (归档, Strict) | `.specpower.yaml` + tasks.md(完成态)+ Delta 规范 | git log + reviews 摘要 | 探索期与执行期的中间笔记 |
+
+### 恢复后向用户复述 (强制)
+
+完成最小加载、进入下一步动作前, **必须**用以下模板向用户简短复述定位 (≤8 行):
+
+```
+## 已恢复
+
+- **变更**: <变更名>
+- **模式**: <Flow / Standard / Strict>
+- **当前 phase**: <Phase N: 名称>
+- **已完成**: <一行, 如 "tasks.md 落盘, 共 5 任务, task-1 已 commit">
+- **下一步**: <具体动作, 如 "继续 task-2: 实现 X 接口">
+
+是否继续?
+```
+
+> **意义**: 这一步既验证模型确实读到了关键信息(而非凭印象推进), 又给用户一个低成本纠错机会。模板**禁止**膨胀成"完整产物概要" — 越短越好, 8 行硬上限。
 
 > Flow 模式**不创建变更目录, 不产出审查文件, 不支持跨会话恢复**, 应在单次会话内完成。
+
+---
+
+## 上下文管理 — 阶段性清空建议
+
+> **背景**: spec-power 后期(尤其 Phase 6 多任务执行)会累积大量上下文 → 模型质量与速度同步下降。spec-power 的产物体系**已经支持任意点清空 + 重入**, 应主动利用此优势, 而不是任由上下文一路膨胀到对话末尾。
+
+### 三个清空检查点 (CP)
+
+skill **应**在以下三个过渡点向用户**主动建议**清空。这是**建议性**约束(不是铁律 R 级):用户可拒绝, 但模型不应静默跳过提示。
+
+| 检查点 | 触发条件 | 建议时机 | 适用模式 |
+|-------|---------|---------|---------|
+| **CP-1** | Phase 5 → Phase 6 | `tasks.md` 已落盘 + 用户确认设计 → 进入执行**前** | Standard+ |
+| **CP-2** | Phase 6 内 | 每完成 3-5 个任务 commit 后, 或主会话已读入大量代码/审查产物时 | Standard+ |
+| **CP-3** | Phase 7 → Phase 8 | 全局审查完成 → 进入验证**前** | Standard+ |
+
+### 标准建议提示模板
+
+到达检查点时, 输出以下格式 (变量按实际填充):
+
+```
+---
+🧠 **上下文压缩建议 (CP-<N>)**
+
+当前进度: <一行总结, 如 "Phase 5 完成, tasks.md 已落盘, 5 任务待执行">
+建议操作: 在新对话执行 `/clear`, 然后输入 `继续 spec-power` 或 `继续 <变更名>`
+恢复行为: Step 0 会自动定位 → 按"最小恢复"原则加载 → 复述定位 → 继续推进
+
+权衡:
+- ✅ 现在清空(推荐) — 释放上下文, 后续质量与速度更稳
+- ⚠️ 跳过继续累积 — 后期可能变慢/质量下降, 风险自担
+---
+```
+
+### 不适用范围 (跳过 CP 的合法情形)
+
+- **Flow 模式**: 单会话完成, 无产物, 清空 = 丢失全部进度
+- **Phase 内中途**(如 Phase 4 设计写一半): 设计未落盘, 清空 = 重做
+- **用户明确说**"保留上下文连续性"或"别清空"
+- **当前任务依赖刚才会话里讨论的活信息**(尚未沉淀到产物)— 此时先把活信息沉淀到 `design.md` / `tasks.md` 注释, 再 CP
+
+### 模型自约束 (即使不清空也应做)
+
+参见 `references/execution-guide.md` 的"上下文隔离原则" — 关键约束:
+
+- Phase 6 任务实现**必须**通过 implementer 子 agent (Claude Code), 主会话不亲自读大段代码
+- 子 agent 返回**最小回报**: 任务号 / 状态 / 创建-修改文件列表 / ≤200 字关键决策摘要
+- **禁止**主会话粘贴/复述子 agent 的代码 diff(在 git 与 reviews 里, 需要时按需 `git show` 切片)
+- 已 commit 的任务**不要**反复回读, 用 `git log --oneline` 定位、`git show <sha>` 切片
 
 ---
 

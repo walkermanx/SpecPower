@@ -1,0 +1,14 @@
+# IDE files
+.idea/
+*.iml
+.DS_Store
+
+# Documentation and assets (if too large)
+docs/
+*.pdf
+*.zip
+
+# Test outputs
+benchmark/
+
+/examples/
